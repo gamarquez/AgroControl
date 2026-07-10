@@ -1,0 +1,588 @@
+# AgroControl - Changelog local
+
+[2026-07-09 22:40] Area: pilot/returns-completion
+Cambio:
+- Se agrego la migracion `infra/supabase/migrations/V0016__sales_full_returns_status.sql` para introducir el estado `fully_returned` y cerrar correctamente una venta cuando todos sus items se devuelven por el flujo de devolucion.
+- El dashboard autenticado ahora se presenta explicitamente como `piloto sin ARCA`, manteniendo el slice fiscal como modulo opcional para no mezclar alcance operativo con integracion futura.
+- El formulario del POS ya no trata la devolucion completa por items como caso ambiguo: si el ticket queda totalmente devuelto, la UI y el backend muestran la venta como `devuelta por completo`.
+- El E2E principal amplió cobertura de piloto con venta a cuenta, cobranza sobre caja y devolucion completa por items.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0016__sales_full_returns_status.sql
+- apps/api/src/AgroControl.Application/Sales/SalesValidation.cs
+- apps/api/tests/AgroControl.Api.Tests/SalesServiceTests.cs
+- apps/web/src/app/dashboard/layout.tsx
+- apps/web/src/app/dashboard/page.tsx
+- apps/web/src/app/dashboard/pos/page.tsx
+- apps/web/src/components/pos/pos-partial-return-form.tsx
+- tests/e2e/bootstrap-stack.e2e.test.mjs
+- README.md
+- docs/PROJECT_SUMMARY_NOTION.md
+
+Validacion:
+- `dotnet build apps/api/src/AgroControl.Api/AgroControl.Api.csproj --no-restore`
+- `dotnet test apps/api/tests/AgroControl.Api.Tests/AgroControl.Api.Tests.csproj --no-restore`
+- `npm.cmd run lint:web`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `node --test tests/e2e/bootstrap-stack.e2e.test.mjs`
+
+Pendientes/riesgos:
+- La migracion `V0016` queda pendiente de aplicacion sobre las bases del entorno piloto.
+- El POS sigue operando sobre deposito default; la seleccion explicita de deposito para caja/POS queda para un siguiente slice.
+
+[2026-07-09 22:05] Area: customers/account-credit-balances
+Cambio:
+- Se agrego la migracion `infra/supabase/migrations/V0015__customer_credit_balances.sql` para habilitar saldo a favor del cliente como balance negativo real y aplicar creditos previos sobre nuevas ventas a cuenta.
+- Las cobranzas, notas de credito y devoluciones parciales ahora pueden dejar credito excedente en cuenta corriente en lugar de bloquear la operacion cuando no hay deuda suficiente.
+- Las ventas a cuenta y el checkout con componente `account` consumen primero el saldo a favor disponible y exponen `credit_balance_applied_amount` en el ticket.
+- El dashboard de `Clientes` muestra saldo a favor y habilita operaciones de cuenta corriente aunque el cliente no tenga deuda abierta.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0015__customer_credit_balances.sql
+- apps/api/src/AgroControl.Application/Sales/*
+- apps/api/src/AgroControl.Api/Infrastructure/SalesApiEndpoints.cs
+- apps/api/src/AgroControl.Contracts/Sales/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCustomerRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/SalesServiceTests.cs
+- apps/api/tests/AgroControl.Api.Tests/FiscalServiceTests.cs
+- apps/web/src/app/dashboard/customers/page.tsx
+- apps/web/src/app/dashboard/pos/page.tsx
+- apps/web/src/components/customers/*
+- apps/web/src/lib/api/contracts.ts
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+- README.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run build:web`
+
+Pendientes/riesgos:
+- La migracion SQL no fue ejecutada sobre una base real en este turno; el comportamiento validado corresponde a compilacion, contratos y tests de aplicacion.
+- El saldo a favor ya se consume automaticamente en ventas, pero todavia no hay una vista separada de anticipos/aplicaciones historicas por credito.
+
+[2026-07-09 21:10] Area: pos/sales-partial-returns
+Cambio:
+- Se agrego la migracion `infra/supabase/migrations/V0014__sales_partial_returns.sql` con `sale_returns`, `sale_return_items` y la rutina `app.return_sale_items(...)` para registrar devoluciones parciales con trazabilidad propia.
+- Las devoluciones parciales ahora reingresan stock, generan reintegro proporcional en caja cuando la venta tenia importe cobrado y emiten nota de credito automatica sobre cuenta corriente cuando la venta tenia saldo financiado.
+- La API suma `POST /api/v1/pos/sales/{saleId}/returns` y el detalle de venta ahora expone cantidades devueltas/disponibles por item e historial de devoluciones.
+- El dashboard de `POS` incorpora formulario de devolucion parcial desde el detalle del ticket y un nuevo estado `partially_returned`.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0014__sales_partial_returns.sql
+- apps/api/src/AgroControl.Application/Sales/*
+- apps/api/src/AgroControl.Api/Infrastructure/SalesApiEndpoints.cs
+- apps/api/src/AgroControl.Contracts/Sales/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/SalesServiceTests.cs
+- apps/api/tests/AgroControl.Api.Tests/FiscalServiceTests.cs
+- apps/web/src/app/dashboard/pos/*
+- apps/web/src/components/pos/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+- README.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run build:web`
+
+Pendientes/riesgos:
+- El reintegro de importes cobrados se distribuye secuencialmente por los medios de pago registrados; todavia no hay eleccion manual del medio exacto a devolver.
+- La devolucion parcial deja la venta en estado `partially_returned`; una devolucion total item por item todavia no migra automaticamente al flujo de `reversed`.
+
+[2026-07-09 19:05] Area: customers/account-credit-notes
+Cambio:
+- Se agrego la migracion `infra/supabase/migrations/V0013__customer_credit_notes.sql` para habilitar `credit_note` como movimiento valido de cuenta corriente y registrar notas de credito con asignacion FIFO sobre debitos abiertos.
+- La API suma `POST /api/v1/customers/{customerId}/credit-notes` con auditoria y validaciones para operadores de administracion/gerencia.
+- El dashboard de `Clientes` ahora permite registrar notas de credito internas sobre cuenta corriente y muestra el tipo de movimiento correctamente en el extracto.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0013__customer_credit_notes.sql
+- apps/api/src/AgroControl.Application/Customers/*
+- apps/api/src/AgroControl.Api/Infrastructure/CustomersApiEndpoints.cs
+- apps/api/src/AgroControl.Contracts/Customers/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCustomerRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/CustomerServiceTests.cs
+- apps/web/src/app/dashboard/customers/*
+- apps/web/src/components/customers/*
+- apps/web/src/lib/auth/session.ts
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+- README.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+
+Pendientes/riesgos:
+- La nota de credito se limita a no superar el saldo pendiente actual; no queda todavia modelado saldo a favor del cliente.
+- Sigue pendiente una devolucion parcial de venta que origine notas de credito automaticamente.
+
+[2026-07-09 18:10] Area: pos-customers/statements-due-dates
+Cambio:
+- Se agrego la migracion `infra/supabase/migrations/V0012__sales_customer_statements.sql` con `due_date` en ventas y movimientos de cuenta corriente, mas la tabla `customer_payment_allocations` para aplicar cobranzas FIFO sobre debitos abiertos.
+- Las rutinas `app.create_account_sale(...)`, `app.create_checkout_sale(...)` y `app.record_customer_payment(...)` ahora soportan vencimientos y dejan trazabilidad del saldo abierto por documento.
+- La API incorpora estado de cuenta real para clientes, incluyendo saldo vencido, proximo vencimiento y movimientos con `open_amount`, `due_date` e indicador de vencido.
+- El dashboard de `Clientes` ahora muestra saldo vencido, proximo vencimiento y estado de cuenta enriquecido.
+- El dashboard de `POS` suma mejor seguimiento operativo de tickets: filtros de ventas, detalle de items, medios de pago, canal y vencimiento cuando existe saldo en cuenta corriente.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0012__sales_customer_statements.sql
+- apps/api/src/AgroControl.Application/Sales/*
+- apps/api/src/AgroControl.Application/Customers/*
+- apps/api/src/AgroControl.Api/Infrastructure/SalesApiEndpoints.cs
+- apps/api/src/AgroControl.Api/Infrastructure/CustomersApiEndpoints.cs
+- apps/api/src/AgroControl.Contracts/Sales/*
+- apps/api/src/AgroControl.Contracts/Customers/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCustomerRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/SalesServiceTests.cs
+- apps/api/tests/AgroControl.Api.Tests/CustomerServiceTests.cs
+- apps/api/tests/AgroControl.Api.Tests/FiscalServiceTests.cs
+- apps/web/src/app/dashboard/pos/*
+- apps/web/src/app/dashboard/customers/*
+- apps/web/src/components/pos/*
+- apps/web/src/components/customers/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+- README.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run lint:web`
+
+Pendientes/riesgos:
+- Las cobranzas ya asignan saldo por FIFO, pero todavia no se implementaron refinanciaciones, intereses, notas de credito ni acuerdos de pago.
+- El POS mejora trazabilidad y vencimientos, pero las devoluciones parciales controladas siguen diferidas para un slice posterior.
+
+[2026-07-09 15:20] Area: stock/warehouses-inventory-alerts
+Cambio:
+- Se agrego la migracion `infra/supabase/migrations/V0011__warehouses_inventory_alerts.sql` para introducir `warehouses`, stock por deposito, conteos fisicos auditables y alertas operativas de reposicion.
+- Las rutinas SQL de stock ahora operan por `warehouse_id` y se incorporo `app.record_physical_inventory_count(...)` para registrar conteo real con ajuste automatico e historial inmutable.
+- Las rutinas de ventas y reversa (`app.create_cash_sale`, `app.create_account_sale`, `app.create_checkout_sale`, `app.reverse_cash_sale`) se actualizaron para consumir el deposito default de la organizacion sin romper el POS existente.
+- La API ahora expone `GET/POST/PATCH /api/v1/stock/warehouses`, `GET /api/v1/stock/alerts` y `POST /api/v1/stock/physical-counts`, ademas de extender el resto del modulo stock para operar por deposito.
+- El dashboard de `Stock` ahora trabaja por deposito, muestra alertas de reposicion, permite conteo fisico y mantiene formularios de politica y movimientos sobre la ubicacion seleccionada.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0011__warehouses_inventory_alerts.sql
+- apps/api/src/AgroControl.Application/Stock/*
+- apps/api/src/AgroControl.Api/Infrastructure/StockApiEndpoints.cs
+- apps/api/src/AgroControl.Contracts/Stock/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlStockRepository.cs
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/StockServiceTests.cs
+- apps/web/src/app/dashboard/stock/*
+- apps/web/src/components/stock/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- README.md
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run build:web`
+
+Pendientes/riesgos:
+- El POS sigue operando contra el deposito default; la seleccion explicita de deposito en caja/POS queda para el siguiente slice funcional.
+- Todavia no se implementaron transferencias entre depositos ni consolidado multi-deposito en reportes.
+
+[2026-07-08 22:40] Area: customers/accounts/increment-8
+Cambio:
+- Se agrego la migracion `infra/supabase/migrations/V0008__customers_accounts.sql` con `customers`, `customer_account_movements` y extension de `sales` para ventas a cuenta con `customer_id`, `paid_amount` y `account_balance_amount`.
+- Se incorporaron las rutinas SQL `app.create_account_sale(...)` y `app.record_customer_payment(...)` para debitar cuenta corriente, descontar stock y registrar cobranzas con impacto en caja de forma transaccional.
+- La API ahora expone `GET/POST/PATCH /api/v1/customers`, `GET /api/v1/customers/{customerId}`, `GET /api/v1/customers/{customerId}/account-movements`, `POST /api/v1/customers/{customerId}/payments` y `POST /api/v1/pos/sales/account`.
+- Se sumaron servicios, repositorios `Npgsql`, validaciones y auditoria para padron comercial, cuenta corriente, venta a cuenta y cobranza.
+- El frontend incorpora el dashboard `Clientes` con filtros, alta y edicion de clientes, movimientos de cuenta, cobranza y venta a cuenta usando el catalogo operativo ya existente.
+- Se actualizaron contratos tipados y validaciones web para tolerar ventas sin `cashSessionId` cuando corresponden a cuenta corriente.
+
+Archivos/modulos:
+- apps/api/src/AgroControl.Api/Infrastructure/CustomersApiEndpoints.cs
+- apps/api/src/AgroControl.Application/Customers/*
+- apps/api/src/AgroControl.Application/Sales/*
+- apps/api/src/AgroControl.Contracts/Customers/*
+- apps/api/src/AgroControl.Contracts/Sales/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCustomerRepository.cs
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/CustomerServiceTests.cs
+- apps/api/tests/AgroControl.Api.Tests/SalesServiceTests.cs
+- apps/web/src/app/dashboard/customers/*
+- apps/web/src/components/customers/*
+- apps/web/src/app/dashboard/layout.tsx
+- apps/web/src/app/dashboard/page.tsx
+- apps/web/src/app/dashboard/pos/page.tsx
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- infra/supabase/migrations/V0008__customers_accounts.sql
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+
+Pendientes/riesgos:
+- La cobranza sigue requiriendo una sesion de caja abierta para impactar caja y cuenta corriente al mismo tiempo.
+- Recuperacion de deuda, notas de credito, limites blandos y comprobantes fiscales sobre cuenta corriente quedan para incrementos posteriores.
+
+[2026-07-08 13:35] Area: bootstrap/increment-1
+Cambio:
+- Se inicializo el monorepo con `apps/api`, `apps/web`, `infra`, `packages`, `scripts`, `tests` y `docs`.
+- Se genero el backend `.NET 10` sin Entity Framework con capas `Api`, `Application`, `Domain`, `Infrastructure` y `Contracts`.
+- Se implementaron `GET /health` y `GET /health/ready`, `ProblemDetails`, logging JSON y conectividad PostgreSQL/Supabase con `Npgsql`.
+- Se agrego la migracion SQL `infra/supabase/migrations/V0001__bootstrap.sql` para tenant, identidad, autorizacion y auditoria inicial.
+- Se dejo `apps/web` con Next.js App Router, TypeScript estricto, Tailwind, componentes base y pantalla inicial en espanol para validar conectividad con la API.
+- Se agregaron Docker Compose para PostgreSQL local, ejemplos `.env*`, CI inicial, smoke test de API y E2E liviano del stack bootstrap.
+
+Archivos/modulos:
+- AgroControl.slnx
+- apps/api/*
+- apps/web/*
+- infra/docker/docker-compose.yml
+- infra/supabase/migrations/V0001__bootstrap.sql
+- docker-compose.yml
+- .env*.example
+- .github/workflows/ci.yml
+- scripts/ci/*
+- scripts/dev/*
+- scripts/qa/*
+- tests/e2e/bootstrap-stack.e2e.test.mjs
+- README.md
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd install`
+- `npm.cmd run lint:web`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+- `docker compose -f docker-compose.yml config`
+
+Pendientes/riesgos:
+- `dotnet restore` dentro de wrappers aislados sigue sensible a las restricciones de red del sandbox.
+- OpenAPI/Swagger queda diferido para un incremento posterior.
+- Falta definir autenticacion final, RLS y el resto de slices funcionales del roadmap.
+
+[2026-07-08 17:50] Area: auth/increment-2
+Cambio:
+- Se implemento autenticacion propia en la API con `JWT` corto, refresh token rotativo, logout y `me`, todos scopeados por `organization_id`.
+- Se agregaron repositorios `Npgsql` sin Entity Framework para usuarios, sesiones refresh, auditoria y configuracion del comercio.
+- Se versiono la migracion `infra/supabase/migrations/V0002__auth_users_settings.sql` con columnas de identidad real, `refresh_sessions`, seeds de roles/permisos y configuracion inicial.
+- Se agrego el script `scripts/dev/bootstrap-admin.ps1` para crear o actualizar el administrador local de desarrollo.
+- El frontend ahora resuelve sesion desde la API usando cookies HTTP-only del lado de Next.js e incluye login, dashboard, usuarios y configuracion inicial del comercio.
+- Se sumaron pruebas unitarias de auth/backend, validacion de login frontend y E2E actualizado del shell autenticado.
+
+Archivos/modulos:
+- apps/api/src/AgroControl.Api/*
+- apps/api/src/AgroControl.Application/Auth/*
+- apps/api/src/AgroControl.Infrastructure/Auth/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/*
+- apps/api/tests/AgroControl.Api.Tests/AuthServiceTests.cs
+- apps/web/src/app/login/*
+- apps/web/src/app/dashboard/*
+- apps/web/src/components/auth/*
+- apps/web/src/components/admin/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/api/server.ts
+- apps/web/src/lib/auth/session.ts
+- infra/supabase/migrations/V0002__auth_users_settings.sql
+- scripts/dev/bootstrap-admin.ps1
+- README.md
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run lint:web`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+
+Pendientes/riesgos:
+- La automatizacion de component tests con Vitest no quedo integrada al pipeline por una restriccion del entorno; se dejo cobertura de acciones/contratos y E2E del shell.
+- El login actual asume una organizacion activa por usuario/email; el selector explicito de organizacion queda para un incremento posterior.
+- RLS y recuperacion de contrasena siguen fuera de este slice MVP.
+
+[2026-07-08 20:25] Area: catalog/increment-3
+Cambio:
+- Se implemento el slice de catalogo con productos, categorias, marcas, unidades de medida, listas de precios y precio vigente por producto.
+- Se agrego la migracion `infra/supabase/migrations/V0003__catalog_products_pricing.sql` con tablas, constraints, seeds y las funciones transaccionales `app.create_product(...)` y `app.update_product(...)`.
+- La API suma endpoints versionados bajo `/api/v1/catalog` con DTOs explicitos, autorizacion por rol, validacion server-side y auditoria de altas, ediciones, desactivaciones y cambios de precio.
+- El frontend incorpora una nueva seccion de catalogo en el dashboard con filtros, alta y edicion de productos, mas pantallas operativas para categorias, marcas y listas de precios.
+- Se agrego cobertura de backend para permisos/auditoria del servicio de catalogo y validacion de acciones del frontend para formularios del modulo.
+
+Archivos/modulos:
+- apps/api/src/AgroControl.Api/Infrastructure/CatalogApiEndpoints.cs
+- apps/api/src/AgroControl.Application/Catalog/*
+- apps/api/src/AgroControl.Contracts/Catalog/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCatalogRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/CatalogServiceTests.cs
+- apps/web/src/app/dashboard/catalog/*
+- apps/web/src/components/catalog/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- infra/supabase/migrations/V0003__catalog_products_pricing.sql
+- README.md
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+
+Pendientes/riesgos:
+- El catalogo queda intencionalmente acotado a una sola locacion operativa; stock, movimientos y depositos siguen fuera de este incremento.
+- Solo se maneja un precio vigente por producto y lista; el historial versionado de precios queda para un slice posterior.
+- OpenAPI sigue diferido para no bloquear estabilidad del stack actual.
+
+[2026-07-08 22:10] Area: stock/increment-4
+Cambio:
+- Se implemento el slice inicial de stock single-location con `stock_balances`, `stock_movements`, politica minima de reposicion y movimientos auditables por producto.
+- Se agrego la migracion `infra/supabase/migrations/V0004__stock_balances_movements.sql` con tablas, indices, seeds de permisos `stock:*` y las rutinas `app.update_stock_policy(...)` y `app.record_stock_movement(...)`.
+- La API ahora expone endpoints versionados para listar stock, consultar detalle por producto, listar movimientos, actualizar politica y registrar movimientos manuales.
+- El dashboard suma la seccion `Stock` con filtros, detalle seleccionado, formulario de politica de stock y registro de movimientos desde la UI en espanol.
+- Se agrego cobertura minima de backend para permisos/auditoria del servicio de stock y validacion frontend para el formulario de movimientos.
+
+Archivos/modulos:
+- apps/api/src/AgroControl.Api/Infrastructure/StockApiEndpoints.cs
+- apps/api/src/AgroControl.Application/Stock/*
+- apps/api/src/AgroControl.Contracts/Stock/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlStockRepository.cs
+- apps/api/tests/AgroControl.Api.Tests/StockServiceTests.cs
+- apps/web/src/app/dashboard/stock/*
+- apps/web/src/components/stock/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- infra/supabase/migrations/V0004__stock_balances_movements.sql
+- README.md
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/DECISIONS.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --list-tests`
+- `dotnet test AgroControl.slnx --no-build --filter "FullyQualifiedName~StockServiceTests"`
+- `npm.cmd run lint:web`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+
+Pendientes/riesgos:
+- El slice de stock no incorpora todavia depositos, transferencias, inventario fisico ni reservas.
+- Los movimientos actuales son manuales y preparan la base para futuras integraciones con ventas, compras y caja.
+- `dotnet test AgroControl.slnx` sin `--no-build` sigue sensible al acceso restringido sobre `NuGet.Config` del perfil del sistema en este entorno.
+
+[2026-07-08 23:35] Area: release-readiness/deployment
+Cambio:
+- Se endurecio la API para despliegue con CORS configurable por entorno, forwarded headers y validaciones estrictas de `Auth__SigningKey`, `Auth__Issuer`, `Auth__Audience` y `AllowedHosts` en produccion.
+- Se agregaron scripts operativos para aplicar migraciones SQL sobre Supabase, bootstrap del admin de produccion, build de Render y smoke post-deploy.
+- Se agrego `render.yaml` para definir el servicio inicial de la API en Render.
+- Se actualizaron `.env.example` y `.env.production.example` con variables reales de API, auth, CORS y conexion PostgreSQL.
+- Se documento el flujo operativo en `docs/operations/production-deploy.md`.
+- El E2E ahora cubre login admin, alta de categoria, alta de marca, alta de producto, movimiento de stock y verificacion de saldo sobre PostgreSQL local.
+
+Archivos/modulos:
+- apps/api/src/AgroControl.Api/Program.cs
+- apps/api/src/AgroControl.Infrastructure/Configuration/DeploymentConfiguration.cs
+- scripts/deploy/*
+- render.yaml
+- tests/e2e/bootstrap-stack.e2e.test.mjs
+- .env.example
+- .env.production.example
+- docs/operations/production-deploy.md
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --list-tests`
+- `dotnet test AgroControl.slnx --no-build --filter "FullyQualifiedName~StockServiceTests"`
+- `npm.cmd run lint:web`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+
+Pendientes/riesgos:
+- Render y Vercel no quedaron enlazados desde el repo porque eso depende de cuentas y secretos externos.
+- Supabase se usa solo como PostgreSQL gestionado en esta etapa; Auth, Storage y RLS operativa siguen fuera de este deploy inicial.
+- `Caja y sesiones` queda como siguiente incremento funcional una vez estabilizado el primer despliegue.
+
+[2026-07-08 20:25] Area: cash/sessions
+Cambio:
+- Se implemento el slice MVP de `Caja y sesiones` para una sola locacion, con apertura, movimientos manuales, cierre y libro diario basico.
+- Se agrego la migracion `V0005__cash_sessions_movements.sql` con `cash_registers`, `cash_sessions`, `cash_movements`, permisos `cash:read` y `cash:write`, seed de caja principal y funciones transaccionales `app.open_cash_session`, `app.record_cash_movement` y `app.close_cash_session`.
+- La API expone `GET /api/v1/cash/overview`, `GET /api/v1/cash/movements`, `POST /api/v1/cash/sessions/open`, `POST /api/v1/cash/movements` y `POST /api/v1/cash/sessions/{cashSessionId}/close`.
+- El dashboard incorpora `/dashboard/cash` con apertura, registro de ingresos/egresos manuales, cierre y listado reciente de movimientos.
+- Se agregaron contratos tipados, tests unitarios backend y tests de acciones frontend para este slice.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0005__cash_sessions_movements.sql
+- apps/api/src/AgroControl.Application/Cash/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCashRepository.cs
+- apps/api/src/AgroControl.Api/Infrastructure/CashApiEndpoints.cs
+- apps/api/tests/AgroControl.Api.Tests/CashServiceTests.cs
+- apps/web/src/app/dashboard/cash/*
+- apps/web/src/components/cash/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- apps/web/package.json
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+
+Pendientes/riesgos:
+- La caja actual solo cubre apertura, movimientos manuales y cierre; todavia no integra ventas, cobranzas, pagos ni contramovimientos automaticos.
+- El libro diario no concilia aun por canal ni valida arqueo detallado por medio de pago.
+- El siguiente slice natural sobre esta base es `Punto de venta con efectivo`.
+
+[2026-07-08 21:40] Area: pos/cash-sales
+Cambio:
+- Se implemento el primer `POS efectivo` para una sola locacion, con ticket interno, carrito basico y confirmacion de venta desde el dashboard.
+- Se agrego la migracion `V0006__sales_pos_cash.sql` con `sales`, `sale_items`, permisos `sales:read` y `sales:write`, e integracion transaccional mediante `app.create_cash_sale(...)`.
+- La rutina de venta confirma una venta en efectivo y, en la misma operacion, persiste el ticket, descuenta stock, registra movimientos de `stock_movements` y acredita caja en `cash_movements`.
+- La API expone `GET /api/v1/pos/products`, `GET /api/v1/pos/sales`, `GET /api/v1/pos/sales/{saleId}` y `POST /api/v1/pos/sales/cash`.
+- El frontend incorpora `/dashboard/pos` con busqueda de productos, carrito, confirmacion de venta y listado de tickets recientes.
+- El E2E ahora cubre alta de producto, ingreso de stock, apertura de caja, venta en efectivo y verificacion final de stock y saldo.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0006__sales_pos_cash.sql
+- apps/api/src/AgroControl.Application/Sales/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs
+- apps/api/src/AgroControl.Api/Infrastructure/SalesApiEndpoints.cs
+- apps/api/tests/AgroControl.Api.Tests/SalesServiceTests.cs
+- apps/web/src/app/dashboard/pos/*
+- apps/web/src/components/pos/*
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- tests/e2e/bootstrap-stack.e2e.test.mjs
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+
+Pendientes/riesgos:
+- Este POS inicial solo soporta efectivo y consumidor final; no incluye descuentos, anulaciones, devoluciones, pagos combinados ni cuenta corriente.
+- El ticket es interno y no hay todavia fiscalizacion ARCA ni contingencia fiscal asociada a la venta.
+- El siguiente slice natural es devoluciones/anulaciones controladas o clientes y cuenta corriente, segun prioridad operativa.
+
+[2026-07-08 22:30] Area: pos/reversals
+Cambio:
+- Se agrego reversa total controlada para ventas confirmadas del POS efectivo.
+- La migracion `V0007__sales_reversals.sql` amplia `sales` con estado `reversed`, metadatos de reversa y la rutina `app.reverse_cash_sale(...)`.
+- La reversa no edita ni borra movimientos previos: registra contramovimientos de stock (`return_inbound`), un egreso compensatorio en caja y marca la venta original como revertida.
+- La API expone `POST /api/v1/pos/sales/{saleId}/reverse`.
+- El dashboard POS ahora muestra el estado de cada ticket y permite revertir tickets confirmados con motivo opcional.
+- El E2E cubre venta confirmada seguida de reversa, verificando restitucion de stock y restauracion del saldo de caja.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0007__sales_reversals.sql
+- apps/api/src/AgroControl.Application/Sales/*
+- apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs
+- apps/api/src/AgroControl.Api/Infrastructure/SalesApiEndpoints.cs
+- apps/api/tests/AgroControl.Api.Tests/SalesServiceTests.cs
+- apps/web/src/app/dashboard/pos/*
+- apps/web/src/components/pos/pos-reverse-sale-form.tsx
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/auth/session.ts
+- tests/e2e/bootstrap-stack.e2e.test.mjs
+
+Validacion:
+- `dotnet build AgroControl.slnx`
+- `dotnet test AgroControl.slnx --no-build`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run lint:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+- `npm.cmd run qa:api:smoke`
+- `npm.cmd run test:e2e`
+
+Pendientes/riesgos:
+- La reversa actual es total; no hay devoluciones parciales por item ni cambios parciales de cantidades.
+- No se generan aun notas de credito ni fiscalizacion compensatoria; eso queda para el slice ARCA.
+- Falta decidir si el siguiente incremento funcional prioriza clientes/cuenta corriente o pagos electronicos.
+
+[2026-07-09 01:25] Area: web/deploy
+Cambio:
+- Se endurecio el contrato de entorno del frontend para Vercel antes del primer deploy.
+- El servidor web ahora exige `AGROCONTROL_API_BASE_URL` en lugar de caer silenciosamente a `127.0.0.1`.
+- El health check server-side del frontend falla de forma explicita cuando falta la URL privada de la API, evitando lecturas falsas contra localhost en Preview o Production.
+- `apps/web/.env.example` y la guia `docs/operations/production-deploy.md` ahora documentan el contrato real de variables para `Preview` y `Production` en Vercel.
+
+Archivos/modulos:
+- apps/web/src/lib/api/config.ts
+- apps/web/src/lib/api/server.ts
+- apps/web/src/lib/api-health.ts
+- apps/web/src/lib/api-health.test.ts
+- apps/web/.env.example
+- docs/operations/production-deploy.md
+
+Validacion:
+- `npm.cmd run lint:web`
+- `npm.cmd run typecheck:web`
+- `npm.cmd run test:web`
+- `npm.cmd run build:web`
+
+Pendientes/riesgos:
+- La primera configuracion en Vercel sigue requiriendo cargar manualmente las variables en los scopes `Preview` y `Production`.
+- Si la API de preview usa un dominio distinto, Render o el host elegido debe aceptar los origins preview necesarios por CORS.

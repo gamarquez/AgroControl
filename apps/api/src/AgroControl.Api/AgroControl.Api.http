@@ -1,0 +1,11 @@
+@AgroControl.Api_HostAddress = http://localhost:5030
+
+GET {{AgroControl.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{AgroControl.Api_HostAddress}}/health/ready
+Accept: application/json
+
+###

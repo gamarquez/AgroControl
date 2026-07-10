@@ -1,0 +1,26 @@
+namespace AgroControl.Contracts.Fiscal;
+
+public sealed record FiscalDocumentResponse(
+    Guid FiscalDocumentId,
+    Guid SaleId,
+    long TicketNumber,
+    Guid? CustomerId,
+    string CustomerName,
+    decimal TotalAmount,
+    string CurrencyCode,
+    string DocumentKind,
+    string Provider,
+    string Environment,
+    string ServiceName,
+    string TaxpayerId,
+    int PointOfSale,
+    string Status,
+    long? DocumentNumber,
+    string? Cae,
+    DateOnly? CaeExpiresOn,
+    string? ExternalReference,
+    string? LastError,
+    int AttemptsCount,
+    DateTimeOffset? LastAttemptAt,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);

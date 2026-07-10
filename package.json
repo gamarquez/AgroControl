@@ -1,0 +1,18 @@
+{
+  "name": "agrocontrol",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "ci:validate": "powershell -ExecutionPolicy Bypass -File ./scripts/ci/validate-bootstrap.ps1",
+    "lint:web": "npm run lint --workspace @agrocontrol/web",
+    "typecheck:web": "npm run typecheck --workspace @agrocontrol/web",
+    "build:web": "npm run build --workspace @agrocontrol/web",
+    "test:web": "npm run test --workspace @agrocontrol/web",
+    "test:web:e2e": "npm run test:e2e --workspace @agrocontrol/web",
+    "qa:api:smoke": "node scripts/qa/api-health-smoke.mjs",
+    "test:e2e": "node --test tests/e2e/bootstrap-stack.e2e.test.mjs"
+  }
+}

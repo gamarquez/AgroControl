@@ -1,0 +1,28 @@
+namespace AgroControl.Contracts.Sales;
+
+public sealed record SaleResponse(
+    Guid SaleId,
+    long TicketNumber,
+    Guid? CashSessionId,
+    Guid? CustomerId,
+    Guid SoldByUserId,
+    string SaleChannel,
+    string Status,
+    string CustomerName,
+    decimal SubtotalAmount,
+    decimal DiscountAmount,
+    decimal TotalAmount,
+    decimal PaidAmount,
+    decimal AccountBalanceAmount,
+    decimal CreditBalanceAppliedAmount,
+    DateOnly? DueDate,
+    string CurrencyCode,
+    Guid? ReversalCashSessionId,
+    Guid? ReversedByUserId,
+    DateTimeOffset? ReversedAt,
+    string? Notes,
+    string? ReversalNotes,
+    DateTimeOffset CreatedAt,
+    IReadOnlyList<SaleItemResponse> Items,
+    IReadOnlyList<SalePaymentResponse> Payments,
+    IReadOnlyList<SaleReturnResponse> Returns);
