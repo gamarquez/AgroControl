@@ -1,7 +1,7 @@
 services:
   - type: web
     name: agrocontrol-api
-    runtime: dotnet
+    runtime: native
     rootDir: .
     branch: main
     buildCommand: pwsh -File ./scripts/deploy/render-build.ps1
