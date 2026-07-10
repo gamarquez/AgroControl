@@ -1,18 +1,17 @@
 services:
   - type: web
     name: agrocontrol-api
-    runtime: dotnet
+    runtime: docker
     rootDir: .
     branch: main
-    buildCommand: pwsh -File ./scripts/deploy/render-build.ps1
-    startCommand: dotnet ./out/AgroControl.Api.dll
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health/ready
     autoDeploy: true
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ASPNETCORE_URLS
-        value: http://0.0.0.0:$PORT
+        value: http://0.0.0.0:10000
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
       - key: POSTGRES_CONNECTION_STRING

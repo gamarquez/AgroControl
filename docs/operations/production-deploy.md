@@ -21,9 +21,10 @@
 
 1. Crear un `Web Service` desde este repositorio.
 2. Usar `render.yaml` como blueprint base.
+   El blueprint usa `runtime: docker` porque Render no acepta `dotnet` ni `native` como runtime validos en `render.yaml`.
 3. Configurar variables:
    - `ASPNETCORE_ENVIRONMENT=Production`
-   - `ASPNETCORE_URLS=http://0.0.0.0:$PORT`
+   - `ASPNETCORE_URLS=http://0.0.0.0:10000`
    - `AllowedHosts=api.<dominio>`
    - `Cors__AllowedOrigins=https://app.<dominio>`
    - `POSTGRES_CONNECTION_STRING` o `SUPABASE_DB_CONNECTION_STRING`
