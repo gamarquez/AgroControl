@@ -60,15 +60,22 @@ Archivos/modulos:
 Cambio:
 - Se corrigio la etapa de build del `Dockerfile` usada por Render para incluir `apps/api/src/AgroControl.Domain/AgroControl.Domain.csproj` antes del `dotnet restore`.
 - El restore de Docker ahora ve el grafo completo de proyectos referenciados por la API y evita el fallo `NETSDK1004` por ausencia de `obj/project.assets.json` en `AgroControl.Domain` al ejecutar `dotnet publish --no-restore`.
+- Se ajusto `render.yaml` segun la documentacion oficial de Render: `Auth__SigningKey` se genera con `generateValue: true`, `Auth__Issuer` toma `RENDER_EXTERNAL_URL`, `AllowedHosts` toma `RENDER_EXTERNAL_HOSTNAME` y solo quedan como `sync: false` los valores que dependen del entorno externo.
+- Se documento que Render ignora nuevas variables `sync: false` al actualizar un Blueprint existente, por lo que deben cargarse manualmente en servicios ya creados.
 
 Archivos/modulos:
 - Dockerfile
+- render.yaml
+- docs/operations/production-deploy.md
+- docs/PROJECT_SUMMARY_NOTION.md
 
 Validacion:
 - `dotnet publish apps/api/src/AgroControl.Api/AgroControl.Api.csproj -c Release -o out -p:NuGetAudit=false`
+- `dotnet build apps/api/src/AgroControl.Api/AgroControl.Api.csproj --no-restore`
 
 Pendientes/riesgos:
 - Si Render reutiliza una imagen o cache previa, conviene relanzar el deploy con rebuild completo para forzar la nueva secuencia de copia y restore.
+- En el servicio existente todavia hay que verificar/cargar `POSTGRES_CONNECTION_STRING`, `Auth__Audience` y `Cors__AllowedOrigins` desde Render > Environment.
 
 Validacion:
 - `dotnet build AgroControl.slnx`

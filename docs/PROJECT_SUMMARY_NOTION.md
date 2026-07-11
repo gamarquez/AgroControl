@@ -126,6 +126,7 @@ Tablas y aggregates principales del baseline:
 - GitHub Actions con validacion del repositorio, restore/build/test backend y lint/test/build frontend.
 - Scripts en `scripts/ci`, `scripts/dev`, `scripts/deploy` y `scripts/qa`.
 - El `Dockerfile` de la API para Render debe copiar todos los `.csproj` del grafo referenciado antes de `dotnet restore`; omitir `AgroControl.Domain` provoca `NETSDK1004` durante `dotnet publish --no-restore`.
+- El Blueprint de Render genera `Auth__SigningKey` y deriva `Auth__Issuer`/`AllowedHosts` desde variables nativas de Render; `POSTGRES_CONNECTION_STRING`, `Auth__Audience` y `Cors__AllowedOrigins` se cargan como secretos/valores manuales del entorno.
 
 ## 5. Validaciones esperadas
 

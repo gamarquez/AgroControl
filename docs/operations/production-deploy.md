@@ -22,16 +22,19 @@
 1. Crear un `Web Service` desde este repositorio.
 2. Usar `render.yaml` como blueprint base.
    El blueprint usa `runtime: docker` porque Render no acepta `dotnet` ni `native` como runtime validos en `render.yaml`.
-3. Configurar variables:
+3. Sincronizar el Blueprint y revisar variables:
    - `ASPNETCORE_ENVIRONMENT=Production`
+   - `PORT=10000`
    - `ASPNETCORE_URLS=http://0.0.0.0:10000`
-   - `AllowedHosts=api.<dominio>`
-   - `Cors__AllowedOrigins=https://app.<dominio>`
+   - `Auth__SigningKey` se genera con `generateValue: true`.
+   - `Auth__Issuer` se toma de `RENDER_EXTERNAL_URL`.
+   - `AllowedHosts` se toma de `RENDER_EXTERNAL_HOSTNAME`.
+4. Completar manualmente en Render > Environment las variables que quedan como `sync: false`:
    - `POSTGRES_CONNECTION_STRING` o `SUPABASE_DB_CONNECTION_STRING`
-   - `Auth__SigningKey`
-   - `Auth__Issuer=https://api.<dominio>`
    - `Auth__Audience=https://app.<dominio>`
-4. Confirmar `healthCheckPath=/health/ready`.
+   - `Cors__AllowedOrigins=https://app.<dominio>`
+5. Si el servicio de Render ya existia antes de agregar una variable `sync: false`, cargarla manualmente. Render solo pide valores `sync: false` durante la creacion inicial del Blueprint; en actualizaciones posteriores los ignora.
+6. Confirmar `healthCheckPath=/health/ready`.
 
 ## 3. Desplegar frontend en Vercel
 

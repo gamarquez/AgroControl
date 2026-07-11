@@ -10,6 +10,8 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+      - key: PORT
+        value: "10000"
       - key: ASPNETCORE_URLS
         value: http://0.0.0.0:10000
       - key: NEXT_TELEMETRY_DISABLED
@@ -17,12 +19,18 @@ services:
       - key: POSTGRES_CONNECTION_STRING
         sync: false
       - key: Auth__SigningKey
-        sync: false
+        generateValue: true
       - key: Auth__Issuer
-        sync: false
+        fromService:
+          type: web
+          name: agrocontrol-api
+          envVarKey: RENDER_EXTERNAL_URL
       - key: Auth__Audience
         sync: false
       - key: Cors__AllowedOrigins
         sync: false
       - key: AllowedHosts
-        sync: false
+        fromService:
+          type: web
+          name: agrocontrol-api
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
