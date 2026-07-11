@@ -125,6 +125,7 @@ Tablas y aggregates principales del baseline:
 - `.env.example` y variantes por entorno sin secretos.
 - GitHub Actions con validacion del repositorio, restore/build/test backend y lint/test/build frontend.
 - Scripts en `scripts/ci`, `scripts/dev`, `scripts/deploy` y `scripts/qa`.
+- El `Dockerfile` de la API para Render debe copiar todos los `.csproj` del grafo referenciado antes de `dotnet restore`; omitir `AgroControl.Domain` provoca `NETSDK1004` durante `dotnet publish --no-restore`.
 
 ## 5. Validaciones esperadas
 

@@ -56,6 +56,20 @@ Archivos/modulos:
 - docs/DECISIONS.md
 - README.md
 
+[2026-07-10 20:05] Area: api/deploy
+Cambio:
+- Se corrigio la etapa de build del `Dockerfile` usada por Render para incluir `apps/api/src/AgroControl.Domain/AgroControl.Domain.csproj` antes del `dotnet restore`.
+- El restore de Docker ahora ve el grafo completo de proyectos referenciados por la API y evita el fallo `NETSDK1004` por ausencia de `obj/project.assets.json` en `AgroControl.Domain` al ejecutar `dotnet publish --no-restore`.
+
+Archivos/modulos:
+- Dockerfile
+
+Validacion:
+- `dotnet publish apps/api/src/AgroControl.Api/AgroControl.Api.csproj -c Release -o out -p:NuGetAudit=false`
+
+Pendientes/riesgos:
+- Si Render reutiliza una imagen o cache previa, conviene relanzar el deploy con rebuild completo para forzar la nueva secuencia de copia y restore.
+
 Validacion:
 - `dotnet build AgroControl.slnx`
 - `dotnet test AgroControl.slnx --no-build`

@@ -8,6 +8,7 @@ COPY ["apps/api/src/AgroControl.Api/AgroControl.Api.csproj", "apps/api/src/AgroC
 COPY ["apps/api/src/AgroControl.Application/AgroControl.Application.csproj", "apps/api/src/AgroControl.Application/"]
 COPY ["apps/api/src/AgroControl.Infrastructure/AgroControl.Infrastructure.csproj", "apps/api/src/AgroControl.Infrastructure/"]
 COPY ["apps/api/src/AgroControl.Contracts/AgroControl.Contracts.csproj", "apps/api/src/AgroControl.Contracts/"]
+COPY ["apps/api/src/AgroControl.Domain/AgroControl.Domain.csproj", "apps/api/src/AgroControl.Domain/"]
 
 RUN dotnet restore "apps/api/src/AgroControl.Api/AgroControl.Api.csproj" --configfile ./NuGet.Config
 
