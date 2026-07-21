@@ -87,8 +87,8 @@
 ## ADR-0015 - Despliegue inicial separado: Supabase + Render + Vercel
 
 - Estado: aprobada.
-- Decision: la primera salida a produccion usa Supabase solo como PostgreSQL gestionado, la API en Render y el frontend en Vercel con subdominios separados.
-- Consecuencia: se reduce complejidad operativa inicial y se evita acoplar el frontend a secretos o capacidades no usadas todavia de Supabase.
+- Decision: la primera salida a produccion usa Supabase solo como PostgreSQL gestionado, la API en un Web Service Docker de Render creado desde el Dashboard y conectado al repositorio, y el frontend en Vercel con subdominios separados. `render.yaml` no forma parte del procedimiento operativo vigente.
+- Consecuencia: se reduce complejidad operativa inicial, la configuracion efectiva de Render queda explicita en el Dashboard y se evita acoplar el frontend a secretos o capacidades no usadas todavia de Supabase.
 
 ## ADR-0016 - Migraciones y bootstrap fuera del arranque de la API
 
@@ -161,3 +161,9 @@
 - Estado: aprobada.
 - Decision: cuando una devolucion por `sale_returns` consume la cantidad completa de todos los `sale_items`, la venta pasa a estado `fully_returned` en lugar de reutilizar `reversed`.
 - Consecuencia: el sistema preserva la diferencia operativa entre una reversa total compensatoria y una devolucion completa construida item por item, lo que simplifica soporte, auditoria y futura integracion fiscal.
+
+## ADR-0028 - Validacion web de identificadores PostgreSQL como GUID
+
+- Estado: aprobada.
+- Decision: los IDs de autenticacion y los `organizationId` de configuracion general y fiscal que provienen de PostgreSQL se validan en Zod 4 con `z.guid()`, sin exigir la variante RFC 4122 impuesta por `z.string().uuid()`.
+- Consecuencia: el frontend acepta UUID validos para PostgreSQL, incluidos identificadores semilla sin bits de variante RFC 4122, sin relajar la validacion a una cadena arbitraria; otros contratos mantienen `z.string().uuid()` hasta que exista una necesidad equivalente demostrada.

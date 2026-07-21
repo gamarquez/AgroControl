@@ -24,6 +24,13 @@ El baseline tecnico ahora alcanza `V0016` y deja una base funcional para identid
 - Slice fiscal inicial con configuracion ARCA, cola de comprobantes y prueba tecnica `FEDummy`.
 - Base de despliegue inicial preparada para Supabase, Render y Vercel.
 
+Estado operativo de Supabase al 2026-07-21:
+
+- Se reejecutaron via MCP las migraciones locales `V0001` a `V0016` en orden, sin agregar nuevas entradas al historial de migraciones.
+- Se verificaron 34 tablas y 23 funciones.
+- Seeds presentes: 1 organizacion con su configuracion, 5 roles, 22 permisos, 77 asignaciones de permisos, 6 unidades de medida, 1 lista de precios, 1 caja, 1 deposito y 1 configuracion fiscal.
+- No hay usuarios ni administrador (`0`); el acceso inicial requiere ejecutar el bootstrap con credenciales seguras.
+
 ## 3. Arquitectura implementada
 
 ### Backend
@@ -66,6 +73,7 @@ Puntos implementados:
 - Dashboard POS para ventas de mostrador con checkout mixto, devolucion parcial, devolucion completa por items y reversa total.
 - Dashboard de clientes con padron comercial, saldo, saldo a favor, limite, movimientos, venta a cuenta y cobranza.
 - Cookies HTTP-only del lado del servidor web para no exponer refresh tokens al cliente.
+- Los contratos de autenticacion y los `organizationId` de configuracion general/fiscal validan identificadores PostgreSQL mediante `z.guid()`, evitando rechazar UUID semilla validos que no declaran variante RFC 4122.
 
 ### Base de datos
 
@@ -119,6 +127,13 @@ Tablas y aggregates principales del baseline:
 - `customers`
 - `customer_account_movements`
 
+### Estado de seguridad y advisors de Supabase
+
+- RLS se encontro deshabilitado en las 34 tablas inspeccionadas. No se habilito durante la recuperacion: antes requiere definir politicas explicitas, alcance por organizacion y pruebas de autorizacion. La aplicacion actualmente accede a PostgreSQL desde la API mediante `Npgsql`.
+- El advisor de seguridad reporto 23 warnings `function_search_path_mutable`; deben corregirse mediante cambios SQL versionados y revision de compatibilidad de cada funcion.
+- El advisor de performance reporto 38 `unindexed_foreign_keys` y 43 `unused_index`.
+- Los indices faltantes deben priorizarse segun filtros y joins reales. Los indices marcados como no usados no deben eliminarse solo con esta medicion, porque el proyecto recuperado aun no tiene una carga representativa.
+
 ## 4. Infraestructura local y CI
 
 - `docker-compose.yml` y `infra/docker/docker-compose.yml` para PostgreSQL local.
@@ -126,9 +141,24 @@ Tablas y aggregates principales del baseline:
 - GitHub Actions con validacion del repositorio, restore/build/test backend y lint/test/build frontend.
 - Scripts en `scripts/ci`, `scripts/dev`, `scripts/deploy` y `scripts/qa`.
 - El `Dockerfile` de la API para Render debe copiar todos los `.csproj` del grafo referenciado antes de `dotnet restore`; omitir `AgroControl.Domain` provoca `NETSDK1004` durante `dotnet publish --no-restore`.
-- El Blueprint de Render genera `Auth__SigningKey` y deriva `Auth__Issuer`/`AllowedHosts` desde variables nativas de Render; `POSTGRES_CONNECTION_STRING`, `Auth__Audience` y `Cors__AllowedOrigins` se cargan como secretos/valores manuales del entorno.
+- La API se despliega en Render creando un `Web Service` Docker desde el Dashboard y conectandolo al repositorio; el flujo vigente no usa Blueprint ni `render.yaml`. Todas las variables y secretos del servicio se configuran desde `Environment`; `Auth__Issuer` y `AllowedHosts` usan los valores concretos de la URL y el host publicos que Render asigna al servicio.
 
 ## 5. Validaciones esperadas
+
+Validacion del fix de contratos de login al 2026-07-21:
+
+- 19 pruebas web aprobadas, incluida la regresion para el `organization_id` semilla de PostgreSQL.
+- Lint web aprobado.
+- Typecheck web aprobado.
+- Build web de produccion aprobado.
+- No se realizo despliegue ni sincronizacion con Notion.
+
+Validacion operativa mas reciente:
+
+- Reejecucion via MCP de `V0001` a `V0016` durante el 2026-07-20/21.
+- Verificacion posterior de 34 tablas, 23 funciones y los seeds del baseline.
+- Inspeccion de advisors de seguridad y performance.
+- No se ejecutaron en esta recuperacion builds, pruebas de API/web ni flujos funcionales end-to-end.
 
 - `./scripts/ci/run-dotnet.ps1 restore`
 - `./scripts/ci/run-dotnet.ps1 build`
@@ -150,6 +180,7 @@ Tablas y aggregates principales del baseline:
 - PostgreSQL local en Docker Compose con API y frontend corriendo fuera de Docker.
 - OpenAPI diferido hasta validar una variante estable para este stack.
 - Sesion web mediada por Next.js con cookies HTTP-only y auth propietaria en la API.
+- Los identificadores provenientes de PostgreSQL en contratos web usan validacion de GUID compatible con PostgreSQL; no se exige variante RFC 4122 cuando la base no la garantiza.
 - Catalogo, stock, caja y POS del baseline operan en una sola locacion.
 - Reversa inicial de ventas solo en modalidad total, mediante compensaciones.
 - Base de despliegue preparada para Supabase, Render y Vercel sin versionar secretos.
@@ -158,6 +189,9 @@ Tablas y aggregates principales del baseline:
 
 - El login MVP asume una organizacion activa por email; falta selector explicito para escenarios multi-tenant con emails repetidos.
 - Definir politica de RLS y acceso directo o no del frontend a Supabase.
+- Crear el primer usuario/administrador en el proyecto Supabase recuperado; el bootstrap esta pendiente porque requiere credenciales.
+- Resolver mediante migraciones versionadas los 23 warnings `function_search_path_mutable` y revisar los 38 `unindexed_foreign_keys`.
+- Reevaluar los 43 `unused_index` cuando exista carga e historial de consultas representativos.
 - Implementar recuperacion de contrasena y endurecimiento adicional de seguridad.
 - Implementar OpenAPI/Swagger en un incremento posterior.
 - El POS aun consume el deposito default; falta selector operativo por caja/POS cuando se habilite multi-deposito real.

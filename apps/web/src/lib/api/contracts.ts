@@ -1,14 +1,16 @@
 import { z } from "zod";
 
+const postgresUuidSchema = z.guid();
+
 export const authRoleSchema = z.object({
-  roleId: z.string().uuid(),
+  roleId: postgresUuidSchema,
   code: z.string().min(1),
   name: z.string().min(1),
 });
 
 export const authUserSchema = z.object({
-  userId: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  userId: postgresUuidSchema,
+  organizationId: postgresUuidSchema,
   email: z.email(),
   displayName: z.string().min(1),
   isActive: z.boolean(),
@@ -39,7 +41,7 @@ export const roleListSchema = z.object({
 });
 
 export const organizationSettingsSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: postgresUuidSchema,
   legalName: z.string().min(1),
   tradeName: z.string().min(1),
   taxId: z.string(),
@@ -341,7 +343,7 @@ export const customerAccountStatementSchema = z.object({
 });
 
 export const fiscalSettingsSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: postgresUuidSchema,
   provider: z.string().min(1),
   environment: z.string().min(1),
   taxpayerId: z.string().min(1),

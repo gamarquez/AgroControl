@@ -19,22 +19,39 @@
 
 ## 2. Desplegar API en Render
 
-1. Crear un `Web Service` desde este repositorio.
-2. Usar `render.yaml` como blueprint base.
-   El blueprint usa `runtime: docker` porque Render no acepta `dotnet` ni `native` como runtime validos en `render.yaml`.
-3. Sincronizar el Blueprint y revisar variables:
-   - `ASPNETCORE_ENVIRONMENT=Production`
-   - `PORT=10000`
-   - `ASPNETCORE_URLS=http://0.0.0.0:10000`
-   - `Auth__SigningKey` se genera con `generateValue: true`.
-   - `Auth__Issuer` se toma de `RENDER_EXTERNAL_URL`.
-   - `AllowedHosts` se toma de `RENDER_EXTERNAL_HOSTNAME`.
-4. Completar manualmente en Render > Environment las variables que quedan como `sync: false`:
-   - `POSTGRES_CONNECTION_STRING` o `SUPABASE_DB_CONNECTION_STRING`
-   - `Auth__Audience=https://app.<dominio>`
-   - `Cors__AllowedOrigins=https://app.<dominio>`
-5. Si el servicio de Render ya existia antes de agregar una variable `sync: false`, cargarla manualmente. Render solo pide valores `sync: false` durante la creacion inicial del Blueprint; en actualizaciones posteriores los ignora.
-6. Confirmar `healthCheckPath=/health/ready`.
+El despliegue se configura como un `Web Service` conectado al repositorio. No se crea ni se sincroniza un Blueprint.
+
+1. En Render Dashboard, seleccionar `New` > `Web Service`.
+2. Elegir `Git Provider`, conectar GitHub si hace falta y seleccionar este repositorio.
+3. Completar la configuracion del servicio:
+   - `Name`: `agrocontrol-api` o el nombre definitivo elegido para la API.
+   - `Region`: una region compatible con la latencia y ubicacion de los servicios externos usados por produccion.
+   - `Branch`: `main`.
+   - `Language`: `Docker`.
+   - `Root Directory`: dejar vacio para usar la raiz del repositorio.
+   - `Dockerfile Path`: `./Dockerfile`.
+   - `Docker Command`: dejar vacio para usar el `ENTRYPOINT` del `Dockerfile`.
+   - `Auto-Deploy`: `On Commit`, o `After CI Checks Pass` si Render tiene acceso a los checks del repositorio.
+4. En `Advanced`, configurar `Health Check Path` con `/health/ready`.
+5. En `Environment`, cargar manualmente todas las variables requeridas:
+
+| Variable | Valor |
+| --- | --- |
+| `ASPNETCORE_ENVIRONMENT` | `Production` |
+| `PORT` | `10000` |
+| `ASPNETCORE_URLS` | `http://0.0.0.0:10000` |
+| `POSTGRES_CONNECTION_STRING` | Cadena de conexion PostgreSQL de produccion obtenida de Supabase. |
+| `Auth__SigningKey` | Secreto aleatorio generado en Render; no reutilizar claves de desarrollo ni guardarlo en el repositorio. |
+| `Auth__Issuer` | URL publica completa de la API, por ejemplo `https://agrocontrol-api.onrender.com`. |
+| `Auth__Audience` | URL publica completa del frontend, por ejemplo `https://app.<dominio>`. |
+| `Cors__AllowedOrigins` | Origen permitido del frontend, por ejemplo `https://app.<dominio>`, sin `/` final. Para varios origenes, separarlos con comas. |
+| `AllowedHosts` | Host de la API sin protocolo, por ejemplo `agrocontrol-api.onrender.com`. |
+
+Render asigna automaticamente `RENDER_EXTERNAL_URL` y `RENDER_EXTERNAL_HOSTNAME` al Web Service, pero las variables de configuracion de ASP.NET Core se cargan con sus valores concretos en el Dashboard. Si se agrega un dominio propio a la API, actualizar `Auth__Issuer` con la URL definitiva y agregar su host a `AllowedHosts`; los hosts de ASP.NET Core se separan con punto y coma.
+
+6. Crear el Web Service y seguir el primer build desde `Events` o `Logs`.
+7. Si se corrigio una variable despues del primer intento, usar `Save and deploy`; si el cambio debe participar tambien del build Docker, usar `Save, rebuild, and deploy`.
+8. Confirmar que el deploy quede `Live` y que `/health/ready` responda correctamente antes de configurar el frontend contra la API.
 
 ## 3. Desplegar frontend en Vercel
 

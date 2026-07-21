@@ -1,5 +1,67 @@
 # AgroControl - Changelog local
 
+[2026-07-21 17:10] Area: web/auth-contracts
+Cambio:
+- Se corrigio la validacion del contrato de login para aceptar identificadores `uuid` validos en PostgreSQL aunque no declaren una variante RFC 4122, como el `organization_id` semilla `11111111-1111-1111-1111-111111111111`.
+- Se incorporo `postgresUuidSchema` basado en `z.guid()` para los IDs de autenticacion y para `organizationId` en configuracion general y fiscal; el resto de los contratos conserva su validacion actual.
+- Se agrego una prueba de regresion del contrato de sesion y se incluyo en el script de pruebas web.
+
+Archivos/modulos:
+- apps/web/src/lib/api/contracts.ts
+- apps/web/src/lib/api/contracts.test.ts
+- apps/web/package.json
+
+Validacion:
+- Pruebas web: 19 tests aprobados.
+- Lint web aprobado.
+- Typecheck web aprobado.
+- Build web de produccion aprobado.
+- No se realizo despliegue ni sincronizacion con Notion.
+
+Pendientes/riesgos:
+- `z.guid()` valida el formato general compatible con los UUID aceptados por PostgreSQL, sin imponer la variante RFC 4122; su uso queda limitado a contratos cuyos identificadores provienen de PostgreSQL.
+
+[2026-07-21] Area: database/supabase-recovery
+Cambio:
+- Se recupero operativamente el proyecto Supabase de AgroControl mediante la reejecucion via MCP de las migraciones locales `V0001` a `V0016`, respetando el orden y sin crear nuevas entradas en el historial de migraciones.
+- Se restauraron los seeds del baseline: 1 organizacion con su configuracion, 5 roles, 22 permisos, 77 asignaciones de permisos, 6 unidades de medida, 1 lista de precios, 1 caja, 1 deposito y 1 configuracion fiscal.
+- El proyecto quedo sin usuarios ni administrador (`0`); el bootstrap administrativo requiere credenciales provistas fuera del repositorio.
+
+Archivos/modulos:
+- infra/supabase/migrations/V0001__bootstrap.sql a V0016__sales_full_returns_status.sql
+- Proyecto Supabase AgroControl
+- docs/CHANGELOG_LOCAL.txt
+- docs/PROJECT_SUMMARY_NOTION.md
+
+Validacion:
+- Reejecucion de `V0001` a `V0016` via MCP durante el 2026-07-20/21.
+- Inspeccion posterior: 34 tablas y 23 funciones verificadas.
+- Verificacion de seeds: 1 organizacion/configuracion, 5 roles, 22 permisos, 77 asignaciones, 6 unidades, 1 lista de precios, 1 caja, 1 deposito y 1 configuracion fiscal.
+- Advisors inspeccionados: 23 warnings `function_search_path_mutable`; performance reporto 38 `unindexed_foreign_keys` y 43 `unused_index`.
+- No se ejecutaron builds ni pruebas de aplicacion en esta tarea operativa. No se realizo sincronizacion con Notion.
+
+Pendientes/riesgos:
+- Crear el primer usuario/administrador mediante el bootstrap con credenciales seguras.
+- RLS esta deshabilitado en las 34 tablas inspeccionadas. No se modifico porque requiere diseno y pruebas de politicas; el acceso actual de la aplicacion se realiza mediante la API y `Npgsql`.
+- Revisar y corregir de forma versionada los 23 warnings de `search_path` mutable y priorizar los 38 indices faltantes de claves foraneas segun las consultas reales.
+- Evaluar los 43 indices sin uso con metricas representativas antes de eliminarlos; una base recien recuperada no aporta historial suficiente para decidir su remocion.
+
+[2026-07-20] Area: docs/deploy
+Cambio:
+- Se actualizo la guia operativa para desplegar la API como un `Web Service` Docker desde el Dashboard de Render conectado al repositorio, sin usar Blueprint ni `render.yaml`.
+- Se documentaron los campos del servicio, el health check, el auto-deploy y la carga manual de variables y secretos desde `Environment`.
+- Se alinearon la decision tecnica y el resumen Notion-ready con el procedimiento vigente.
+
+Archivos/modulos:
+- docs/operations/production-deploy.md
+- docs/DECISIONS.md
+- docs/PROJECT_SUMMARY_NOTION.md
+- docs/CHANGELOG_LOCAL.txt
+
+Validacion:
+- `git diff --check`.
+- Revision documental de las referencias modificadas; no se ejecutaron builds, pruebas ni despliegues.
+
 [2026-07-09 22:40] Area: pilot/returns-completion
 Cambio:
 - Se agrego la migracion `infra/supabase/migrations/V0016__sales_full_returns_status.sql` para introducir el estado `fully_returned` y cerrar correctamente una venta cuando todos sus items se devuelven por el flujo de devolucion.

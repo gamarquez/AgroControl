@@ -11,7 +11,7 @@
     "start": "next start --hostname 127.0.0.1 --port 3000",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "npm run test:contracts",
-    "test:contracts": "node --import tsx --test src/lib/api-health.test.ts src/app/login/actions.test.ts src/app/dashboard/catalog/actions.test.ts src/app/dashboard/stock/actions.test.ts src/app/dashboard/cash/actions.test.ts src/app/dashboard/pos/actions.test.ts src/app/dashboard/customers/actions.test.ts src/app/dashboard/fiscal/actions.test.ts",
+    "test:contracts": "node --import tsx --test src/lib/api-health.test.ts src/lib/api/contracts.test.ts src/app/login/actions.test.ts src/app/dashboard/catalog/actions.test.ts src/app/dashboard/stock/actions.test.ts src/app/dashboard/cash/actions.test.ts src/app/dashboard/pos/actions.test.ts src/app/dashboard/customers/actions.test.ts src/app/dashboard/fiscal/actions.test.ts",
     "test:components": "vitest run src/components/health/health-status-panel.test.tsx",
     "test:e2e": "playwright test"
   },
