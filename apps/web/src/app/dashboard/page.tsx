@@ -1,103 +1,59 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, Boxes, CircleDollarSign, PackageSearch, ShoppingCart, Users } from "lucide-react";
+import Link from "next/link";
+
 import { requireSession } from "@/lib/auth/session";
+
+const operations = [
+  { href: "/dashboard/pos", title: "Nueva venta", description: "Abrir el punto de venta y cobrar.", icon: ShoppingCart, primary: true },
+  { href: "/dashboard/catalog", title: "Catálogo", description: "Buscar, crear y actualizar productos.", icon: PackageSearch },
+  { href: "/dashboard/stock", title: "Stock", description: "Consultar saldos y registrar movimientos.", icon: Boxes },
+  { href: "/dashboard/cash", title: "Caja", description: "Abrir, controlar o cerrar la caja.", icon: CircleDollarSign },
+  { href: "/dashboard/customers", title: "Clientes", description: "Cuentas corrientes y cobranzas.", icon: Users },
+];
 
 export default async function DashboardPage() {
   const session = await requireSession();
+  const firstName = session.displayName.split(" ")[0];
 
   return (
-    <div className="grid gap-6">
-      <Card className="border-border/80 bg-card/95">
-        <CardHeader className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <Badge className="w-fit">Sesion actual</Badge>
-            <Badge variant="outline" className="w-fit">Piloto operativo sin ARCA</Badge>
-          </div>
-          <div className="space-y-2">
-            <CardTitle className="text-3xl">Base operativa lista para salir a prueba</CardTitle>
-            <CardDescription className="max-w-3xl text-base leading-7">
-              La app ya permite operar catalogo, stock, caja, POS y clientes con cuenta corriente
-              sobre un piloto interno sin depender de ARCA para el circuito diario.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <SummaryItem label="Usuario" value={session.displayName} />
-          <SummaryItem label="Email" value={session.email} />
-          <SummaryItem
-            label="Roles efectivos"
-            value={session.roles.map((role) => role.name).join(", ") || "Sin roles"}
-          />
-        </CardContent>
-      </Card>
+    <div className="space-y-8">
+      <header className="space-y-2">
+        <p className="text-sm font-medium text-primary">Panel operativo</p>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Buen día, {firstName}</h1>
+        <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+          Elegí una operación para comenzar. Las tareas más frecuentes están siempre a un paso.
+        </p>
+      </header>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Catalogo</CardTitle>
-            <CardDescription>
-              Productos, categorias, marcas y precios base listos para enlazar stock.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Stock</CardTitle>
-            <CardDescription>
-              Saldos por producto, puntos de reposicion y movimientos auditables para una sola locacion.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">POS y pagos mixtos</CardTitle>
-            <CardDescription>
-              Venta mostrador con ticket interno, salida de stock y cobro en efectivo, transferencia, QR, tarjeta o cuenta corriente.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Clientes y cuenta corriente</CardTitle>
-            <CardDescription>
-              Padron comercial, limite de credito, ventas a cuenta y cobranza simple con trazabilidad.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">ARCA y fiscalizacion</CardTitle>
-            <CardDescription>
-              Slice opcional y todavia no requerido para esta salida a prueba.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Usuarios</CardTitle>
-            <CardDescription>
-              Alta, activacion, bloqueo y asignacion de roles dentro de la organizacion.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Configuracion del comercio</CardTitle>
-            <CardDescription>
-              Nombre legal, nombre comercial, zona horaria, moneda y datos base para la UI.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    </div>
-  );
-}
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Accesos rápidos">
+        {operations.map((operation) => {
+          const Icon = operation.icon;
+          return (
+            <Link
+              key={operation.href}
+              href={operation.href}
+              className={`group flex min-h-36 flex-col justify-between rounded-xl border p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 ${
+                operation.primary ? "border-primary bg-primary text-primary-foreground" : "bg-card"
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <Icon className="size-5" aria-hidden="true" />
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="font-semibold">{operation.title}</h2>
+                <p className={`mt-1 text-sm ${operation.primary ? "text-primary-foreground/75" : "text-muted-foreground"}`}>
+                  {operation.description}
+                </p>
+              </div>
+            </Link>
+          );
+        })}
+      </section>
 
-function SummaryItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 text-base font-medium">{value}</p>
+      <footer className="border-t border-border pt-5 text-xs text-muted-foreground">
+        Sesión iniciada como {session.email}
+      </footer>
     </div>
   );
 }

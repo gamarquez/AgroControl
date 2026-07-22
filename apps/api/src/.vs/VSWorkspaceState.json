@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\AgroControl.Api\\bin",
+    "\\AgroControl.Application\\Persistence",
+    "\\AgroControl.Infrastructure\\Configuration",
+    "\\AgroControl.Infrastructure\\Diagnostics"
+  ],
+  "SelectedNode": "\\AgroControl.Infrastructure",
+  "PreviewInSolutionExplorer": false
+}

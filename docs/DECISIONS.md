@@ -165,5 +165,11 @@
 ## ADR-0028 - Validacion web de identificadores PostgreSQL como GUID
 
 - Estado: aprobada.
-- Decision: los IDs de autenticacion y los `organizationId` de configuracion general y fiscal que provienen de PostgreSQL se validan en Zod 4 con `z.guid()`, sin exigir la variante RFC 4122 impuesta por `z.string().uuid()`.
-- Consecuencia: el frontend acepta UUID validos para PostgreSQL, incluidos identificadores semilla sin bits de variante RFC 4122, sin relajar la validacion a una cadena arbitraria; otros contratos mantienen `z.string().uuid()` hasta que exista una necesidad equivalente demostrada.
+- Decision: todos los identificadores de contratos web que provienen de PostgreSQL se validan en Zod 4 con un esquema comun basado en `z.guid()`, sin exigir la variante RFC 4122 impuesta por `z.string().uuid()`.
+- Consecuencia: autenticacion, configuracion, Catalogo, Stock, Caja, Clientes, Fiscal y POS aceptan el dominio real de valores UUID de PostgreSQL, incluidos identificadores sin bits de variante RFC 4122, sin relajar la validacion a una cadena arbitraria. Las regresiones de sesion, productos y stock protegen este contrato.
+
+## ADR-0029 - Interfaz operativa responsive con divulgacion progresiva
+
+- Estado: aprobada.
+- Decision: la experiencia autenticada prioriza las tareas frecuentes mediante navegacion principal visible y responsive, separa las opciones administrativas bajo Gestion y presenta los formularios secundarios de Catalogo y Stock como secciones desplegables.
+- Consecuencia: el dashboard y los modulos operativos reducen carga visual, conservan acceso rapido desde escritorio y mobile, y permiten incorporar acciones adicionales sin convertir la vista principal en una sucesion permanente de formularios abiertos.

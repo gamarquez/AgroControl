@@ -1,25 +1,37 @@
 # AgroControl - Changelog local
 
-[2026-07-21 17:10] Area: web/auth-contracts
+[2026-07-21 18:16] Area: web/contracts-and-operational-ui
 Cambio:
-- Se corrigio la validacion del contrato de login para aceptar identificadores `uuid` validos en PostgreSQL aunque no declaren una variante RFC 4122, como el `organization_id` semilla `11111111-1111-1111-1111-111111111111`.
-- Se incorporo `postgresUuidSchema` basado en `z.guid()` para los IDs de autenticacion y para `organizationId` en configuracion general y fiscal; el resto de los contratos conserva su validacion actual.
-- Se agrego una prueba de regresion del contrato de sesion y se incluyo en el script de pruebas web.
+- Se corrigio el contrato web para aceptar todos los UUID validos de PostgreSQL mediante `postgresUuidSchema` basado en `z.guid()`, sin exigir los bits de variante RFC 4122 que imponia `z.string().uuid()`.
+- La validacion compatible con PostgreSQL se aplico de forma consistente a los identificadores de autenticacion, configuracion, Catalogo, Stock, Caja, Clientes, Fiscal y POS.
+- Se agregaron regresiones para sesion, listado de productos y listado de stock, incluidos identificadores PostgreSQL validos sin bits de variante RFC.
+- Se rediseno la experiencia autenticada con una navegacion minimalista y operativa: barra lateral en escritorio, accesos principales horizontales y gestion desplegable en mobile, y un dashboard de accesos rapidos orientado a tareas.
+- Catalogo y Stock adoptaron una presentacion mas compacta, seleccion y detalle mas claros, y formularios progresivos desplegables para reducir carga visual y mantener las operaciones disponibles en pantallas pequenas.
+- Se ajustaron tokens visuales, foco visible y tarjetas para sostener una interfaz sobria, consistente y accesible.
 
 Archivos/modulos:
+- apps/web/src/app/dashboard/layout.tsx
+- apps/web/src/app/dashboard/page.tsx
+- apps/web/src/app/dashboard/catalog/page.tsx
+- apps/web/src/app/dashboard/stock/page.tsx
+- apps/web/src/components/dashboard/dashboard-nav.tsx
+- apps/web/src/app/globals.css
+- apps/web/src/components/ui/card.tsx
 - apps/web/src/lib/api/contracts.ts
 - apps/web/src/lib/api/contracts.test.ts
-- apps/web/package.json
 
 Validacion:
-- Pruebas web: 19 tests aprobados.
-- Lint web aprobado.
-- Typecheck web aprobado.
-- Build web de produccion aprobado.
+- Pruebas web: 21/21 aprobadas.
+- `npm.cmd run typecheck` desde `apps/web`: aprobado.
+- `npm.cmd run lint` desde `apps/web`: aprobado.
+- Build de produccion de Next.js: aprobado.
+- Pruebas backend focalizadas de `CatalogServiceTests` y `StockServiceTests`: 9/9 aprobadas.
+- No se modificaron backend ni base de datos.
 - No se realizo despliegue ni sincronizacion con Notion.
 
 Pendientes/riesgos:
-- `z.guid()` valida el formato general compatible con los UUID aceptados por PostgreSQL, sin imponer la variante RFC 4122; su uso queda limitado a contratos cuyos identificadores provienen de PostgreSQL.
+- La validacion automatizada cubre contratos y compilacion del frontend; no se informo una validacion visual/E2E en navegadores ni dispositivos reales para el redisenio responsive.
+- `z.guid()` conserva validacion estructural del identificador, pero deliberadamente no exige variante RFC 4122 porque PostgreSQL acepta valores UUID mas amplios.
 
 [2026-07-21] Area: database/supabase-recovery
 Cambio:

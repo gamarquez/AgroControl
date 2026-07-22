@@ -91,23 +91,21 @@ export default async function StockPage({
   const selectedWarehouse = warehouses.items.find((warehouse) => warehouse.warehouseId === selectedWarehouseId) ?? warehouses.items[0];
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-primary">Inventario</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Stock</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {stock.total} productos · {alerts.items.length} alertas en {selectedWarehouse?.name ?? "el depósito"}
+          </p>
+        </div>
+        {!isEditor ? <Badge variant="outline">Solo lectura</Badge> : null}
+      </header>
+
       <Card>
-        <CardHeader className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="w-fit">Stock</Badge>
-            <Badge variant="outline">Depositos</Badge>
-            {!isEditor ? <Badge variant="outline">Lectura</Badge> : null}
-          </div>
-          <div className="space-y-2">
-            <CardTitle className="text-2xl">Depositos, alertas e inventario fisico</CardTitle>
-            <CardDescription>
-              Stock por deposito, conteos fisicos auditables y alertas de reposicion sobre la ubicacion operativa seleccionada.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <form method="get" className="grid gap-4 md:grid-cols-5">
+        <CardContent className="grid gap-4 pt-5">
+          <form method="get" className="grid gap-3 lg:grid-cols-[190px_minmax(240px,1fr)_repeat(3,minmax(150px,auto))_auto]">
             <select
               name="warehouseId"
               defaultValue={selectedWarehouseId}
@@ -122,7 +120,7 @@ export default async function StockPage({
             <input
               name="search"
               defaultValue={firstValue(resolvedSearchParams.search) ?? ""}
-              placeholder="Nombre, codigo, SKU o barcode"
+              placeholder="Buscar por nombre, código, SKU o barras"
               className="h-11 rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-primary"
             />
             <select
@@ -158,25 +156,19 @@ export default async function StockPage({
               <option value="true">Solo stock bajo</option>
               <option value="false">Solo stock normal</option>
             </select>
-            <button className="h-11 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground md:col-span-5 md:w-fit">
-              Aplicar filtros
+            <button className="h-11 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground">
+              Buscar
             </button>
           </form>
 
-          <div className="grid gap-4 md:grid-cols-4">
-            <SummaryItem label="Deposito activo" value={selectedWarehouse?.name ?? "Sin deposito"} />
-            <SummaryItem label="Codigo" value={selectedWarehouse?.code ?? "-"} />
-            <SummaryItem label="Alertas activas" value={String(alerts.items.length)} />
-            <SummaryItem label="Productos visibles" value={String(stock.total)} />
-          </div>
-
-          {!isEditor ? (
-            <Alert>
-              <AlertTitle>Vista de consulta</AlertTitle>
-              <AlertDescription>
-                Tu rol puede consultar stock por deposito, pero no editar politicas ni registrar movimientos o conteos.
-              </AlertDescription>
-            </Alert>
+          {isEditor ? (
+            <details className="group rounded-lg border border-dashed border-primary/40 bg-primary/[0.03]">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-primary">
+                Configurar depósito
+                <span className="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <div className="border-t border-border p-4"><WarehouseForm warehouse={selectedWarehouse} /></div>
+            </details>
           ) : null}
         </CardContent>
       </Card>
@@ -265,8 +257,6 @@ export default async function StockPage({
         </section>
 
         <aside className="grid gap-4">
-          {isEditor ? <WarehouseForm warehouse={selectedWarehouse} /> : null}
-
           {selectedItem && selectedMovements ? (
             <>
               <Card>
@@ -284,9 +274,30 @@ export default async function StockPage({
                 </CardContent>
               </Card>
 
-              {isEditor ? <StockPolicyForm item={selectedItem} /> : null}
-              {isEditor ? <PhysicalInventoryCountForm item={selectedItem} /> : null}
-              {isEditor ? <StockMovementForm item={selectedItem} /> : null}
+              {isEditor ? (
+                <details className="group rounded-xl border bg-card" open>
+                  <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold">
+                    Registrar movimiento <span className="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <div className="border-t p-4"><StockMovementForm item={selectedItem} /></div>
+                </details>
+              ) : null}
+              {isEditor ? (
+                <details className="group rounded-xl border bg-card">
+                  <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold">
+                    Conteo físico <span className="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <div className="border-t p-4"><PhysicalInventoryCountForm item={selectedItem} /></div>
+                </details>
+              ) : null}
+              {isEditor ? (
+                <details className="group rounded-xl border bg-card">
+                  <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold">
+                    Política de stock <span className="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <div className="border-t p-4"><StockPolicyForm item={selectedItem} /></div>
+                </details>
+              ) : null}
 
               <Card>
                 <CardHeader>

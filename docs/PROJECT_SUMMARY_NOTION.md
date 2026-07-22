@@ -11,6 +11,7 @@ El baseline tecnico ahora alcanza `V0016` y deja una base funcional para identid
 - Monorepo inicial listo.
 - API `.NET 10` compilable y testeada.
 - Frontend `Next.js` compilable y testeado.
+- Interfaz autenticada minimalista y responsive, orientada a las operaciones frecuentes de mostrador.
 - Migraciones SQL versionadas hasta `V0016`.
 - PostgreSQL local por Docker Compose.
 - CI y scripts de validacion del repositorio.
@@ -65,15 +66,16 @@ Puntos implementados:
 - Tailwind CSS.
 - Componentes base estilo shadcn/ui.
 - Login en espanol con estados claros.
-- Layout autenticado con resolucion de sesion desde la API.
+- Layout autenticado con resolucion de sesion desde la API y navegacion responsive: barra lateral en escritorio, accesos operativos horizontales y gestion desplegable en mobile.
+- Resumen operativo con accesos directos a venta, Catalogo, Stock, Caja y Clientes.
 - Pantallas de usuarios y configuracion del comercio.
-- Dashboard de catalogo con formularios operativos y filtros.
-- Dashboard de stock con filtros por deposito, alertas, conteo fisico, politicas y movimientos recientes.
+- Dashboard de Catalogo compacto con filtros, seleccion clara y formularios progresivos desplegables para alta y edicion.
+- Dashboard de Stock con filtros por deposito, alertas, detalle seleccionado y formularios progresivos para movimientos, conteo fisico y politicas.
 - Dashboard de caja con apertura, movimientos manuales y cierre.
 - Dashboard POS para ventas de mostrador con checkout mixto, devolucion parcial, devolucion completa por items y reversa total.
 - Dashboard de clientes con padron comercial, saldo, saldo a favor, limite, movimientos, venta a cuenta y cobranza.
 - Cookies HTTP-only del lado del servidor web para no exponer refresh tokens al cliente.
-- Los contratos de autenticacion y los `organizationId` de configuracion general/fiscal validan identificadores PostgreSQL mediante `z.guid()`, evitando rechazar UUID semilla validos que no declaran variante RFC 4122.
+- Todos los identificadores provenientes de PostgreSQL en los contratos web se validan mediante `postgresUuidSchema` basado en `z.guid()`, evitando rechazar UUID validos que no declaran variante RFC 4122 sin degradar la validacion a una cadena arbitraria.
 
 ### Base de datos
 
@@ -145,12 +147,15 @@ Tablas y aggregates principales del baseline:
 
 ## 5. Validaciones esperadas
 
-Validacion del fix de contratos de login al 2026-07-21:
+Validacion de contratos web y redisenio operativo al 2026-07-21:
 
-- 19 pruebas web aprobadas, incluida la regresion para el `organization_id` semilla de PostgreSQL.
+- 21/21 pruebas web aprobadas, incluidas regresiones de sesion, Catalogo y Stock con UUID PostgreSQL sin bits de variante RFC 4122.
 - Lint web aprobado.
 - Typecheck web aprobado.
-- Build web de produccion aprobado.
+- Build de produccion de Next.js aprobado.
+- 9/9 pruebas backend focalizadas de Catalogo y Stock aprobadas.
+- No se modificaron backend ni base de datos en esta implementacion.
+- No se informo validacion visual/E2E en navegadores o dispositivos reales.
 - No se realizo despliegue ni sincronizacion con Notion.
 
 Validacion operativa mas reciente:
@@ -181,6 +186,7 @@ Validacion operativa mas reciente:
 - OpenAPI diferido hasta validar una variante estable para este stack.
 - Sesion web mediada por Next.js con cookies HTTP-only y auth propietaria en la API.
 - Los identificadores provenientes de PostgreSQL en contratos web usan validacion de GUID compatible con PostgreSQL; no se exige variante RFC 4122 cuando la base no la garantiza.
+- La interfaz autenticada prioriza navegacion operativa responsive y divulgacion progresiva de formularios para reducir carga visual sin ocultar capacidades.
 - Catalogo, stock, caja y POS del baseline operan en una sola locacion.
 - Reversa inicial de ventas solo en modalidad total, mediante compensaciones.
 - Base de despliegue preparada para Supabase, Render y Vercel sin versionar secretos.

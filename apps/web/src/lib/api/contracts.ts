@@ -50,21 +50,21 @@ export const organizationSettingsSchema = z.object({
 });
 
 export const productCategorySchema = z.object({
-  categoryId: z.string().uuid(),
+  categoryId: postgresUuidSchema,
   name: z.string().min(1),
   description: z.string().nullable(),
   isActive: z.boolean(),
 });
 
 export const brandSchema = z.object({
-  brandId: z.string().uuid(),
+  brandId: postgresUuidSchema,
   name: z.string().min(1),
   description: z.string().nullable(),
   isActive: z.boolean(),
 });
 
 export const unitSchema = z.object({
-  unitId: z.string().uuid(),
+  unitId: postgresUuidSchema,
   name: z.string().min(1),
   code: z.string().min(1),
   symbol: z.string().min(1),
@@ -73,7 +73,7 @@ export const unitSchema = z.object({
 });
 
 export const priceListSchema = z.object({
-  priceListId: z.string().uuid(),
+  priceListId: postgresUuidSchema,
   name: z.string().min(1),
   code: z.string().min(1),
   isDefault: z.boolean(),
@@ -81,7 +81,7 @@ export const priceListSchema = z.object({
 });
 
 export const productPriceSchema = z.object({
-  priceListId: z.string().uuid(),
+  priceListId: postgresUuidSchema,
   priceListName: z.string().min(1),
   priceListCode: z.string().min(1),
   costAmount: z.number(),
@@ -92,7 +92,7 @@ export const productPriceSchema = z.object({
 });
 
 export const productSummarySchema = z.object({
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   name: z.string().min(1),
   description: z.string().nullable(),
   internalCode: z.string().min(1),
@@ -144,7 +144,7 @@ export const stockPolicySchema = z.object({
 });
 
 export const warehouseSchema = z.object({
-  warehouseId: z.string().uuid(),
+  warehouseId: postgresUuidSchema,
   name: z.string().min(1),
   code: z.string().min(1),
   isDefault: z.boolean(),
@@ -154,9 +154,9 @@ export const warehouseSchema = z.object({
 });
 
 export const stockMovementSchema = z.object({
-  stockMovementId: z.string().uuid(),
+  stockMovementId: postgresUuidSchema,
   warehouse: warehouseSchema,
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   movementType: z.string().min(1),
   quantity: z.number(),
   quantityDelta: z.number(),
@@ -164,13 +164,13 @@ export const stockMovementSchema = z.object({
   reason: z.string().min(1),
   referenceDocument: z.string().nullable(),
   notes: z.string().nullable(),
-  performedByUserId: z.string().uuid().nullable(),
+  performedByUserId: postgresUuidSchema.nullable(),
   createdAt: z.string().datetime({ offset: true }),
 });
 
 export const stockSummarySchema = z.object({
   warehouse: warehouseSchema,
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   name: z.string().min(1),
   internalCode: z.string().min(1),
   sku: z.string().nullable(),
@@ -208,7 +208,7 @@ export const warehouseListSchema = z.object({
 
 export const stockAlertSchema = z.object({
   warehouse: warehouseSchema,
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   productName: z.string().min(1),
   internalCode: z.string().min(1),
   unitSymbol: z.string().min(1),
@@ -223,27 +223,27 @@ export const stockAlertListSchema = z.object({
 });
 
 export const physicalInventoryCountSchema = z.object({
-  physicalInventoryCountId: z.string().uuid(),
+  physicalInventoryCountId: postgresUuidSchema,
   warehouse: warehouseSchema,
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   expectedQuantity: z.number(),
   countedQuantity: z.number(),
   differenceQuantity: z.number(),
   reason: z.string().min(1),
   notes: z.string().nullable(),
-  performedByUserId: z.string().uuid().nullable(),
+  performedByUserId: postgresUuidSchema.nullable(),
   createdAt: z.string().datetime({ offset: true }),
 });
 
 export const cashRegisterSchema = z.object({
-  cashRegisterId: z.string().uuid(),
+  cashRegisterId: postgresUuidSchema,
   name: z.string().min(1),
   code: z.string().min(1),
   isActive: z.boolean(),
 });
 
 export const cashSessionSchema = z.object({
-  cashSessionId: z.string().uuid(),
+  cashSessionId: postgresUuidSchema,
   cashRegister: cashRegisterSchema,
   openingAmount: z.number(),
   closingAmount: z.number().nullable(),
@@ -252,15 +252,15 @@ export const cashSessionSchema = z.object({
   status: z.string().min(1),
   openingNotes: z.string().nullable(),
   closingNotes: z.string().nullable(),
-  openedByUserId: z.string().uuid(),
-  closedByUserId: z.string().uuid().nullable(),
+  openedByUserId: postgresUuidSchema,
+  closedByUserId: postgresUuidSchema.nullable(),
   openedAt: z.string().datetime({ offset: true }),
   closedAt: z.string().datetime({ offset: true }).nullable(),
 });
 
 export const cashMovementSchema = z.object({
-  cashMovementId: z.string().uuid(),
-  cashSessionId: z.string().uuid(),
+  cashMovementId: postgresUuidSchema,
+  cashSessionId: postgresUuidSchema,
   movementType: z.string().min(1),
   categoryCode: z.string().min(1),
   concept: z.string().min(1),
@@ -270,7 +270,7 @@ export const cashMovementSchema = z.object({
   resultingBalance: z.number(),
   referenceDocument: z.string().nullable(),
   notes: z.string().nullable(),
-  performedByUserId: z.string().uuid().nullable(),
+  performedByUserId: postgresUuidSchema.nullable(),
   createdAt: z.string().datetime({ offset: true }),
 });
 
@@ -288,7 +288,7 @@ export const cashMovementListSchema = z.object({
 });
 
 export const customerSchema = z.object({
-  customerId: z.string().uuid(),
+  customerId: postgresUuidSchema,
   displayName: z.string().min(1),
   taxId: z.string().nullable(),
   phone: z.string().nullable(),
@@ -312,10 +312,10 @@ export const customerListSchema = z.object({
 });
 
 export const customerAccountMovementSchema = z.object({
-  customerAccountMovementId: z.string().uuid(),
-  customerId: z.string().uuid(),
-  saleId: z.string().uuid().nullable(),
-  cashSessionId: z.string().uuid().nullable(),
+  customerAccountMovementId: postgresUuidSchema,
+  customerId: postgresUuidSchema,
+  saleId: postgresUuidSchema.nullable(),
+  cashSessionId: postgresUuidSchema.nullable(),
   movementType: z.string().min(1),
   concept: z.string().min(1),
   referenceDocument: z.string().nullable(),
@@ -326,7 +326,7 @@ export const customerAccountMovementSchema = z.object({
   dueDate: z.string().nullable(),
   resultingBalance: z.number(),
   notes: z.string().nullable(),
-  performedByUserId: z.string().uuid().nullable(),
+  performedByUserId: postgresUuidSchema.nullable(),
   createdAt: z.string().datetime({ offset: true }),
 });
 
@@ -355,10 +355,10 @@ export const fiscalSettingsSchema = z.object({
 });
 
 export const fiscalDocumentSchema = z.object({
-  fiscalDocumentId: z.string().uuid(),
-  saleId: z.string().uuid(),
+  fiscalDocumentId: postgresUuidSchema,
+  saleId: postgresUuidSchema,
   ticketNumber: z.number().int().nonnegative(),
-  customerId: z.string().uuid().nullable(),
+  customerId: postgresUuidSchema.nullable(),
   customerName: z.string().min(1),
   totalAmount: z.number(),
   currencyCode: z.string().min(1),
@@ -398,7 +398,7 @@ export const fiscalProbeSchema = z.object({
 });
 
 export const posProductSchema = z.object({
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   name: z.string().min(1),
   internalCode: z.string().min(1),
   sku: z.string().nullable(),
@@ -418,8 +418,8 @@ export const posProductListSchema = z.object({
 });
 
 export const saleItemSchema = z.object({
-  saleItemId: z.string().uuid(),
-  productId: z.string().uuid(),
+  saleItemId: postgresUuidSchema,
+  productId: postgresUuidSchema,
   productName: z.string().min(1),
   unitSymbol: z.string().min(1),
   quantity: z.number(),
@@ -430,9 +430,9 @@ export const saleItemSchema = z.object({
 });
 
 export const saleReturnItemSchema = z.object({
-  saleReturnItemId: z.string().uuid(),
-  saleItemId: z.string().uuid(),
-  productId: z.string().uuid(),
+  saleReturnItemId: postgresUuidSchema,
+  saleItemId: postgresUuidSchema,
+  productId: postgresUuidSchema,
   quantity: z.number(),
   unitPrice: z.number(),
   lineTotal: z.number(),
@@ -440,11 +440,11 @@ export const saleReturnItemSchema = z.object({
 });
 
 export const saleReturnSchema = z.object({
-  saleReturnId: z.string().uuid(),
-  saleId: z.string().uuid(),
-  cashSessionId: z.string().uuid().nullable(),
-  customerAccountMovementId: z.string().uuid().nullable(),
-  returnedByUserId: z.string().uuid(),
+  saleReturnId: postgresUuidSchema,
+  saleId: postgresUuidSchema,
+  cashSessionId: postgresUuidSchema.nullable(),
+  customerAccountMovementId: postgresUuidSchema.nullable(),
+  returnedByUserId: postgresUuidSchema,
   returnTotalAmount: z.number(),
   refundedPaidAmount: z.number(),
   creditedAccountAmount: z.number(),
@@ -454,7 +454,7 @@ export const saleReturnSchema = z.object({
 });
 
 export const salePaymentSchema = z.object({
-  salePaymentId: z.string().uuid(),
+  salePaymentId: postgresUuidSchema,
   paymentMethod: z.string().min(1),
   amount: z.number(),
   reference: z.string().nullable(),
@@ -463,11 +463,11 @@ export const salePaymentSchema = z.object({
 });
 
 export const saleSchema = z.object({
-  saleId: z.string().uuid(),
+  saleId: postgresUuidSchema,
   ticketNumber: z.number().int().nonnegative(),
-  cashSessionId: z.string().uuid().nullable(),
-  customerId: z.string().uuid().nullable(),
-  soldByUserId: z.string().uuid(),
+  cashSessionId: postgresUuidSchema.nullable(),
+  customerId: postgresUuidSchema.nullable(),
+  soldByUserId: postgresUuidSchema,
   saleChannel: z.string().min(1),
   status: z.string().min(1),
   customerName: z.string().min(1),
@@ -479,8 +479,8 @@ export const saleSchema = z.object({
   creditBalanceAppliedAmount: z.number(),
   dueDate: z.string().nullable(),
   currencyCode: z.string().min(1),
-  reversalCashSessionId: z.string().uuid().nullable(),
-  reversedByUserId: z.string().uuid().nullable(),
+  reversalCashSessionId: postgresUuidSchema.nullable(),
+  reversedByUserId: postgresUuidSchema.nullable(),
   reversedAt: z.string().datetime({ offset: true }).nullable(),
   notes: z.string().nullable(),
   reversalNotes: z.string().nullable(),
@@ -491,10 +491,10 @@ export const saleSchema = z.object({
 });
 
 export const saleSummarySchema = z.object({
-  saleId: z.string().uuid(),
+  saleId: postgresUuidSchema,
   ticketNumber: z.number().int().nonnegative(),
-  cashSessionId: z.string().uuid().nullable(),
-  customerId: z.string().uuid().nullable(),
+  cashSessionId: postgresUuidSchema.nullable(),
+  customerId: postgresUuidSchema.nullable(),
   customerName: z.string().min(1),
   saleChannel: z.string().min(1),
   status: z.string().min(1),

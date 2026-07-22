@@ -2,7 +2,7 @@ import { CatalogProductCreateForm } from "@/components/catalog/catalog-product-c
 import { CatalogProductUpdateForm } from "@/components/catalog/catalog-product-update-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   listCatalogBrands,
   listCatalogCategories,
@@ -66,27 +66,23 @@ export default async function CatalogPage({
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-primary">Productos</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Catálogo</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{products.total} productos encontrados</p>
+        </div>
+        {!isEditor ? <Badge variant="outline">Solo lectura</Badge> : null}
+      </header>
+
       <Card>
-        <CardHeader className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="w-fit">Catalogo</Badge>
-            {!isEditor ? <Badge variant="outline">Lectura</Badge> : null}
-          </div>
-          <div className="space-y-2">
-            <CardTitle className="text-2xl">Productos, categorias, marcas y precios base</CardTitle>
-            <CardDescription>
-              Slice operativo para una sola locacion, listo para conectar el proximo
-              incremento de stock.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <form method="get" className="grid gap-4 md:grid-cols-4">
+        <CardContent className="grid gap-4 pt-5">
+          <form method="get" className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_repeat(3,minmax(150px,auto))_auto]">
             <input
               name="search"
               defaultValue={firstValue(resolvedSearchParams.search) ?? ""}
-              placeholder="Nombre, codigo, SKU o barcode"
+              placeholder="Buscar por nombre, código, SKU o barras"
               className="h-11 rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-primary"
             />
             <select
@@ -122,96 +118,82 @@ export default async function CatalogPage({
               <option value="true">Activos</option>
               <option value="false">Inactivos</option>
             </select>
-            <button className="h-11 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground md:col-span-4 md:w-fit">
-              Aplicar filtros
+            <button className="h-11 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground">
+              Buscar
             </button>
           </form>
 
           {isEditor ? (
-            <Card className="border-dashed">
-              <CardHeader>
-                <CardTitle className="text-lg">Alta rapida de producto</CardTitle>
-                <CardDescription>
-                  Crea el producto y su precio vigente en una sola operacion.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            <details className="group rounded-lg border border-dashed border-primary/40 bg-primary/[0.03]">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-primary">
+                Nuevo producto
+                <span className="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <div className="border-t border-border p-4">
                 <CatalogProductCreateForm
                   categories={categories.items.filter((category) => category.isActive)}
                   brands={brands.items.filter((brand) => brand.isActive)}
                   units={units.items.filter((unit) => unit.isActive)}
                   priceLists={priceLists.items.filter((priceList) => priceList.isActive)}
                 />
-              </CardContent>
-            </Card>
-          ) : (
-            <Alert>
-              <AlertTitle>Vista de consulta</AlertTitle>
-              <AlertDescription>
-                Tu rol puede consultar catalogo y precios, pero no editar productos.
-              </AlertDescription>
-            </Alert>
-          )}
+              </div>
+            </details>
+          ) : null}
         </CardContent>
       </Card>
 
-      <section className="grid gap-4">
+      <section className="overflow-hidden rounded-xl border bg-card">
         {products.items.length === 0 ? (
-          <Alert>
+          <Alert className="m-4">
             <AlertTitle>Sin productos</AlertTitle>
             <AlertDescription>
               Todavia no hay productos que coincidan con los filtros seleccionados.
             </AlertDescription>
           </Alert>
         ) : (
-          products.items.map((product) => (
-            <Card key={product.productId}>
-              <CardHeader className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle className="text-lg">{product.name}</CardTitle>
-                  <Badge variant={product.isActive ? "outline" : "default"}>
-                    {product.isActive ? "Activo" : "Inactivo"}
-                  </Badge>
-                  {product.category ? <Badge variant="outline">{product.category.name}</Badge> : null}
-                  {product.brand ? <Badge variant="outline">{product.brand.name}</Badge> : null}
+          <div className="divide-y divide-border">
+            <div className="hidden grid-cols-[minmax(260px,1.5fr)_1fr_120px_120px] gap-4 bg-muted/50 px-5 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground md:grid">
+              <span>Producto</span><span>Clasificación</span><span>Costo</span><span className="text-right">Precio</span>
+            </div>
+            {products.items.map((product) => (
+              <article key={product.productId} className="px-4 py-4 transition-colors hover:bg-muted/35 sm:px-5">
+                <div className="grid items-center gap-3 md:grid-cols-[minmax(260px,1.5fr)_1fr_120px_120px] md:gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="truncate font-semibold">{product.name}</h2>
+                      {!product.isActive ? <Badge>Inactivo</Badge> : null}
+                    </div>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {product.internalCode}{product.sku ? ` · SKU ${product.sku}` : ""}{product.barcode ? ` · ${product.barcode}` : ""}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {product.category ? <Badge variant="outline">{product.category.name}</Badge> : null}
+                    {product.brand ? <Badge variant="outline">{product.brand.name}</Badge> : null}
+                    <Badge variant="outline">{product.baseUnit.symbol}</Badge>
+                  </div>
+                  <p className="text-sm tabular-nums text-muted-foreground">$ {product.currentPrice.costAmount.toFixed(2)}</p>
+                  <p className="text-lg font-semibold tabular-nums md:text-right">$ {product.currentPrice.saleAmount.toFixed(2)}</p>
                 </div>
-                <CardDescription>
-                  {product.internalCode}
-                  {product.sku ? ` | SKU ${product.sku}` : ""}
-                  {product.barcode ? ` | BAR ${product.barcode}` : ""}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-4 md:grid-cols-4">
-                  <SummaryItem label="Unidad" value={product.baseUnit.symbol} />
-                  <SummaryItem label="Costo" value={`$ ${product.currentPrice.costAmount.toFixed(2)}`} />
-                  <SummaryItem label="Margen" value={`${product.currentPrice.marginPercent ?? 0}%`} />
-                  <SummaryItem label="Precio" value={`$ ${product.currentPrice.saleAmount.toFixed(2)}`} />
-                </div>
-
                 {isEditor ? (
-                  <CatalogProductUpdateForm
-                    product={product}
-                    categories={categories.items}
-                    brands={brands.items}
-                    units={units.items}
-                    priceLists={priceLists.items}
-                  />
+                  <details className="group mt-3">
+                    <summary className="cursor-pointer list-none text-xs font-medium text-primary hover:underline">Editar producto</summary>
+                    <div className="mt-4 rounded-lg border bg-background p-4">
+                      <CatalogProductUpdateForm
+                        product={product}
+                        categories={categories.items}
+                        brands={brands.items}
+                        units={units.items}
+                        priceLists={priceLists.items}
+                      />
+                    </div>
+                  </details>
                 ) : null}
-              </CardContent>
-            </Card>
-          ))
+              </article>
+            ))}
+          </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function SummaryItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 text-base font-medium">{value}</p>
     </div>
   );
 }
