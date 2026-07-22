@@ -15,7 +15,7 @@ test("openCashSessionAction validates opening amount", async () => {
 
 test("createCashMovementAction validates concept before calling the API", async () => {
   const formData = new FormData();
-  formData.set("cashSessionId", "00000000-0000-4000-8000-000000000001");
+  formData.set("cashSessionId", "88888888-8888-8888-8888-888888888888");
   formData.set("movementType", "cash_out");
   formData.set("categoryCode", "ga");
   formData.set("concept", "ok");

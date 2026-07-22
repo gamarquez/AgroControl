@@ -24,5 +24,5 @@ test("queueFiscalDocumentAction validates saleId", async () => {
 
   const result = await queueFiscalDocumentAction({ error: null, success: null }, formData);
 
-  assert.match(result.error ?? "", /uuid/i);
+  assert.match(result.error ?? "", /(guid|uuid)/i);
 });

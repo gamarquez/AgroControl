@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { createCheckoutSale, revalidateDashboardPaths, returnSaleItems, reverseCashSale } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type PosActionState = {
   error: string | null;
@@ -10,7 +11,7 @@ export type PosActionState = {
 };
 
 const saleItemSchema = z.object({
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   quantity: z.number().positive("La cantidad debe ser mayor a cero."),
 });
 
@@ -22,8 +23,8 @@ const salePaymentSchema = z.object({
 });
 
 const createCheckoutSaleSchema = z.object({
-  cashSessionId: z.string().uuid().optional().or(z.literal("")),
-  customerId: z.string().uuid().optional().or(z.literal("")),
+  cashSessionId: postgresUuidSchema.optional().or(z.literal("")),
+  customerId: postgresUuidSchema.optional().or(z.literal("")),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(saleItemSchema).min(1, "Debes agregar al menos un producto."),
@@ -31,19 +32,19 @@ const createCheckoutSaleSchema = z.object({
 });
 
 const reverseCashSaleSchema = z.object({
-  saleId: z.string().uuid(),
-  cashSessionId: z.string().uuid(),
+  saleId: postgresUuidSchema,
+  cashSessionId: postgresUuidSchema,
   reversalNotes: z.string().optional(),
 });
 
 const returnSaleItemSchema = z.object({
-  saleItemId: z.string().uuid(),
+  saleItemId: postgresUuidSchema,
   quantity: z.number().positive("La cantidad debe ser mayor a cero."),
 });
 
 const returnSaleSchema = z.object({
-  saleId: z.string().uuid(),
-  cashSessionId: z.string().uuid().optional().or(z.literal("")),
+  saleId: postgresUuidSchema,
+  cashSessionId: postgresUuidSchema.optional().or(z.literal("")),
   notes: z.string().optional(),
   items: z.array(returnSaleItemSchema).min(1, "Debes seleccionar al menos un item para devolver."),
 });

@@ -347,7 +347,7 @@ internal sealed class NpgsqlCashRepository(ISqlConnectionFactory connectionFacto
 
     private static void AddNullable<T>(NpgsqlCommand command, string name, T? value)
     {
-        command.Parameters.AddWithValue(name, value is null ? DBNull.Value : value);
+        NpgsqlParameterHelper.AddNullable(command, name, value);
     }
 
     private static string ToSpanishMessage(string messageText)

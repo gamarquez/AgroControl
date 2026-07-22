@@ -7,6 +7,7 @@ import {
   revalidateDashboardPaths,
   updateCatalogPriceList,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type PriceListActionState = {
   error: string | null;
@@ -21,7 +22,7 @@ const createSchema = z.object({
 });
 
 const updateSchema = createSchema.extend({
-  priceListId: z.string().uuid(),
+  priceListId: postgresUuidSchema,
 });
 
 export async function createPriceListAction(

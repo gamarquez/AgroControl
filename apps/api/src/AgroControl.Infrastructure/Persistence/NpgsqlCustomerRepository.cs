@@ -593,7 +593,7 @@ internal sealed class NpgsqlCustomerRepository(ISqlConnectionFactory connectionF
 
     private static void AddNullable<T>(NpgsqlCommand command, string name, T? value)
     {
-        command.Parameters.AddWithValue(name, value is null ? DBNull.Value : value);
+        NpgsqlParameterHelper.AddNullable(command, name, value);
     }
 
     private static ValidationException ToValidationException(PostgresException exception)

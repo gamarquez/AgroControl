@@ -10,6 +10,7 @@ import {
   revalidateDashboardPaths,
   updateCustomer,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type CustomerActionState = {
   error: string | null;
@@ -17,7 +18,7 @@ export type CustomerActionState = {
 };
 
 const saleItemSchema = z.object({
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   quantity: z.number().positive("La cantidad debe ser mayor a cero."),
 });
 
@@ -32,19 +33,19 @@ const customerSchema = z.object({
 });
 
 const updateCustomerSchema = customerSchema.extend({
-  customerId: z.string().uuid(),
+  customerId: postgresUuidSchema,
   isActive: z.boolean(),
 });
 
 const paymentSchema = z.object({
-  customerId: z.string().uuid(),
-  cashSessionId: z.string().uuid(),
+  customerId: postgresUuidSchema,
+  cashSessionId: postgresUuidSchema,
   amount: z.coerce.number().positive("El importe debe ser mayor a cero."),
   notes: z.string().optional(),
 });
 
 const creditNoteSchema = z.object({
-  customerId: z.string().uuid(),
+  customerId: postgresUuidSchema,
   amount: z.coerce.number().positive("El importe debe ser mayor a cero."),
   concept: z.string().trim().min(3, "El concepto debe tener al menos 3 caracteres."),
   referenceDocument: z.string().optional(),
@@ -52,7 +53,7 @@ const creditNoteSchema = z.object({
 });
 
 const accountSaleSchema = z.object({
-  customerId: z.string().uuid(),
+  customerId: postgresUuidSchema,
   dueDate: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(saleItemSchema).min(1, "Debes agregar al menos un producto."),

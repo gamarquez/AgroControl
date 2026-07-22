@@ -757,7 +757,7 @@ internal sealed class NpgsqlStockRepository(ISqlConnectionFactory connectionFact
 
     private static void AddNullable<T>(NpgsqlCommand command, string name, T? value)
     {
-        command.Parameters.AddWithValue(name, value is null ? DBNull.Value : value);
+        NpgsqlParameterHelper.AddNullable(command, name, value);
     }
 
     private static string ToSpanishMessage(string messageText)

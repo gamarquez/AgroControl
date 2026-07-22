@@ -394,7 +394,7 @@ internal sealed class NpgsqlFiscalRepository(ISqlConnectionFactory connectionFac
 
     private static void AddNullable<T>(NpgsqlCommand command, string name, T? value)
     {
-        command.Parameters.AddWithValue(name, value is null ? DBNull.Value : value);
+        NpgsqlParameterHelper.AddNullable(command, name, value);
     }
 
     private static void AddJsonNullable(NpgsqlCommand command, string name, string? json)

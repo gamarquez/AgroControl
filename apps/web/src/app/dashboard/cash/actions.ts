@@ -8,6 +8,7 @@ import {
   openCashSession,
   revalidateDashboardPaths,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type CashActionState = {
   error: string | null;
@@ -21,7 +22,7 @@ const openSessionSchema = z.object({
 });
 
 const createMovementSchema = z.object({
-  cashSessionId: z.string().uuid(),
+  cashSessionId: postgresUuidSchema,
   movementType: z.enum(["cash_in", "cash_out"]),
   categoryCode: z.string().trim().min(2, "La categoria debe tener al menos 2 caracteres."),
   concept: z.string().trim().min(3, "El concepto debe tener al menos 3 caracteres."),
@@ -32,7 +33,7 @@ const createMovementSchema = z.object({
 });
 
 const closeSessionSchema = z.object({
-  cashSessionId: z.string().uuid(),
+  cashSessionId: postgresUuidSchema,
   closingAmount: z.coerce.number().min(0, "El monto de cierre no puede ser negativo."),
   closingNotes: z.string().optional(),
 });

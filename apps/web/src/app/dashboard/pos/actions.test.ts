@@ -21,7 +21,7 @@ test("reverseCashSaleAction validates saleId", async () => {
 
   const result = await reverseCashSaleAction({ error: null, success: null }, formData);
 
-  assert.match(result.error ?? "", /uuid/i);
+  assert.match(result.error ?? "", /(guid|uuid)/i);
 });
 
 test("returnSaleItemsAction validates that at least one item is selected", async () => {

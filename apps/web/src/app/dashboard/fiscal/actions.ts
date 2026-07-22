@@ -8,6 +8,7 @@ import {
   revalidateDashboardPaths,
   updateFiscalSettings,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type FiscalActionState = {
   error: string | null;
@@ -25,7 +26,7 @@ const fiscalSettingsSchema = z.object({
 });
 
 const queueFiscalDocumentSchema = z.object({
-  saleId: z.string().uuid(),
+  saleId: postgresUuidSchema,
   documentKind: z.enum(["invoice", "credit_note"]),
 });
 

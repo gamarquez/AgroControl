@@ -1,4 +1,4 @@
-import { CatalogProductCreateForm } from "@/components/catalog/catalog-product-create-form";
+import { CatalogSetupFlow } from "@/components/catalog/catalog-setup-flow";
 import { CatalogProductUpdateForm } from "@/components/catalog/catalog-product-update-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +76,16 @@ export default async function CatalogPage({
         {!isEditor ? <Badge variant="outline">Solo lectura</Badge> : null}
       </header>
 
+      {isEditor ? (
+        <CatalogSetupFlow
+          categories={categories.items}
+          brands={brands.items}
+          units={units.items}
+          priceLists={priceLists.items}
+          productCount={products.total}
+        />
+      ) : null}
+
       <Card>
         <CardContent className="grid gap-4 pt-5">
           <form method="get" className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_repeat(3,minmax(150px,auto))_auto]">
@@ -122,23 +132,6 @@ export default async function CatalogPage({
               Buscar
             </button>
           </form>
-
-          {isEditor ? (
-            <details className="group rounded-lg border border-dashed border-primary/40 bg-primary/[0.03]">
-              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-primary">
-                Nuevo producto
-                <span className="text-lg leading-none transition-transform group-open:rotate-45">+</span>
-              </summary>
-              <div className="border-t border-border p-4">
-                <CatalogProductCreateForm
-                  categories={categories.items.filter((category) => category.isActive)}
-                  brands={brands.items.filter((brand) => brand.isActive)}
-                  units={units.items.filter((unit) => unit.isActive)}
-                  priceLists={priceLists.items.filter((priceList) => priceList.isActive)}
-                />
-              </div>
-            </details>
-          ) : null}
         </CardContent>
       </Card>
 

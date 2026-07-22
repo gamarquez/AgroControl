@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const postgresUuidSchema = z.guid();
+export const postgresUuidSchema = z.guid();
 
 export const authRoleSchema = z.object({
   roleId: postgresUuidSchema,

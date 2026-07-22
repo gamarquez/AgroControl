@@ -14,18 +14,22 @@ export function CatalogMasterCreateForm({
   action,
   submitLabel,
   title,
+  namePlaceholder,
+  descriptionPlaceholder,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   submitLabel: string;
   title: string;
+  namePlaceholder?: string;
+  descriptionPlaceholder?: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, { error: null, success: null });
 
   return (
     <form action={formAction} className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label={title} name="name" required />
-        <Field label="Descripcion" name="description" />
+        <Field label={title} name="name" placeholder={namePlaceholder} required />
+        <Field label="Descripción" name="description" placeholder={descriptionPlaceholder} />
       </div>
 
       {state.error ? (
@@ -206,11 +210,13 @@ function Field({
   label,
   name,
   defaultValue,
+  placeholder,
   required = false,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
+  placeholder?: string;
   required?: boolean;
 }) {
   return (
@@ -222,6 +228,7 @@ function Field({
         id={`${name}-${label}`}
         name={name}
         defaultValue={defaultValue}
+        placeholder={placeholder}
         required={required}
         className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-primary"
       />

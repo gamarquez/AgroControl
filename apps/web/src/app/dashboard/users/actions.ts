@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { createUser, revalidateDashboardPaths, updateUser } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type UserActionState = {
   error: string | null;
@@ -14,16 +15,16 @@ const createUserSchema = z.object({
   displayName: z.string().trim().min(3, "El nombre debe tener al menos 3 caracteres."),
   password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres."),
   mustChangePassword: z.boolean(),
-  roleIds: z.array(z.uuid()).min(1, "Selecciona al menos un rol."),
+  roleIds: z.array(postgresUuidSchema).min(1, "Selecciona al menos un rol."),
 });
 
 const updateUserSchema = z.object({
-  userId: z.uuid(),
+  userId: postgresUuidSchema,
   displayName: z.string().trim().min(3, "El nombre debe tener al menos 3 caracteres."),
   isActive: z.boolean(),
   isLocked: z.boolean(),
   mustChangePassword: z.boolean(),
-  roleIds: z.array(z.uuid()).min(1, "Selecciona al menos un rol."),
+  roleIds: z.array(postgresUuidSchema).min(1, "Selecciona al menos un rol."),
 });
 
 export async function createUserAction(

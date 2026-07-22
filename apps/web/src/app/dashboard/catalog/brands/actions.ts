@@ -7,6 +7,7 @@ import {
   revalidateDashboardPaths,
   updateCatalogBrand,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type BrandActionState = {
   error: string | null;
@@ -19,7 +20,7 @@ const createSchema = z.object({
 });
 
 const updateSchema = createSchema.extend({
-  brandId: z.string().uuid(),
+  brandId: postgresUuidSchema,
   isActive: z.boolean(),
 });
 

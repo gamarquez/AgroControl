@@ -17,7 +17,7 @@ El baseline tecnico ahora alcanza `V0016` y deja una base funcional para identid
 - CI y scripts de validacion del repositorio.
 - Autenticacion propia con `JWT` y refresh token rotativo.
 - Panel inicial de usuarios y configuracion del comercio.
-- Catalogo operativo con productos, categorias, marcas, unidades y precios base.
+- Catalogo operativo con carga guiada de categorias, marcas, productos y precios base, incluido calculo automatico costo+margen o precio manual.
 - Stock por deposito con saldos, politica de reposicion, alertas y conteo fisico auditable.
 - Caja con sesiones, movimientos manuales y cierre.
 - POS con efectivo, cuenta corriente, checkout mixto, trazabilidad de tickets, devolucion parcial, devolucion completa por items, reversa total y consumo automatico de saldo a favor, sobre deposito default.
@@ -25,9 +25,11 @@ El baseline tecnico ahora alcanza `V0016` y deja una base funcional para identid
 - Slice fiscal inicial con configuracion ARCA, cola de comprobantes y prueba tecnica `FEDummy`.
 - Base de despliegue inicial preparada para Supabase, Render y Vercel.
 
-Estado operativo de Supabase al 2026-07-21:
+Estado operativo de Supabase al 2026-07-22:
 
-- Se reejecutaron via MCP las migraciones locales `V0001` a `V0016` en orden, sin agregar nuevas entradas al historial de migraciones.
+- El proyecto AgroControl se verifico en estado `ACTIVE_HEALTHY`.
+- Se verifico via MCP el historial de migraciones de produccion, sin ejecutar cambios sobre el esquema.
+- Las migraciones `V0001` a `V0016` estan presentes y se verifico la existencia de `app.products`, `app.product_categories`, `app.units_of_measure`, `app.price_lists`, `app.product_prices` y `app.warehouses`.
 - Se verificaron 34 tablas y 23 funciones.
 - Seeds presentes: 1 organizacion con su configuracion, 5 roles, 22 permisos, 77 asignaciones de permisos, 6 unidades de medida, 1 lista de precios, 1 caja, 1 deposito y 1 configuracion fiscal.
 - No hay usuarios ni administrador (`0`); el acceso inicial requiere ejecutar el bootstrap con credenciales seguras.
@@ -56,6 +58,7 @@ Puntos implementados:
 - Fiscal con settings, cola de comprobantes y prueba tecnica de conectividad.
 - Clientes con alta, edicion, movimientos de cuenta, cobranza, nota de credito, saldo a favor y venta a cuenta.
 - Acceso a PostgreSQL/Supabase via `Npgsql`.
+- Los parametros opcionales de persistencia se construyen mediante `NpgsqlParameterHelper`, que conserva el tipo PostgreSQL explicito (`Text`, `Uuid`, `Boolean`, `Numeric`, `Date`, `TimestampTz`, `Integer` o `Bigint`) incluso cuando el valor enviado es `DBNull.Value`. Catalogo, Stock, Caja, Clientes, Fiscal y Ventas usan este contrato comun.
 - Sin Entity Framework.
 - Auditoria de login, refresh, logout, usuarios, catalogo, stock, caja, ventas y clientes.
 
@@ -69,13 +72,13 @@ Puntos implementados:
 - Layout autenticado con resolucion de sesion desde la API y navegacion responsive: barra lateral en escritorio, accesos operativos horizontales y gestion desplegable en mobile.
 - Resumen operativo con accesos directos a venta, Catalogo, Stock, Caja y Clientes.
 - Pantallas de usuarios y configuracion del comercio.
-- Dashboard de Catalogo compacto con filtros, seleccion clara y formularios progresivos desplegables para alta y edicion.
+- Dashboard de Catalogo compacto con filtros y seleccion clara. El alta sigue un circuito guiado Categoria/Marca -> Producto -> Precio, informa prerequisitos y permite calcular el precio automaticamente desde costo y margen o cargarlo manualmente.
 - Dashboard de Stock con filtros por deposito, alertas, detalle seleccionado y formularios progresivos para movimientos, conteo fisico y politicas.
 - Dashboard de caja con apertura, movimientos manuales y cierre.
 - Dashboard POS para ventas de mostrador con checkout mixto, devolucion parcial, devolucion completa por items y reversa total.
 - Dashboard de clientes con padron comercial, saldo, saldo a favor, limite, movimientos, venta a cuenta y cobranza.
 - Cookies HTTP-only del lado del servidor web para no exponer refresh tokens al cliente.
-- Todos los identificadores provenientes de PostgreSQL en los contratos web se validan mediante `postgresUuidSchema` basado en `z.guid()`, evitando rechazar UUID validos que no declaran variante RFC 4122 sin degradar la validacion a una cadena arbitraria.
+- Todos los identificadores provenientes de PostgreSQL en los contratos web y Server Actions se validan mediante `postgresUuidSchema` basado en `z.guid()`, evitando rechazar UUID validos que no declaran variante RFC 4122 sin degradar la validacion a una cadena arbitraria.
 
 ### Base de datos
 
@@ -147,15 +150,24 @@ Tablas y aggregates principales del baseline:
 
 ## 5. Validaciones esperadas
 
-Validacion de contratos web y redisenio operativo al 2026-07-21:
+Validacion del hotfix de parametros nullable al 2026-07-22:
 
-- 21/21 pruebas web aprobadas, incluidas regresiones de sesion, Catalogo y Stock con UUID PostgreSQL sin bits de variante RFC 4122.
+- Los logs PostgreSQL de las ultimas 24 horas mostraron repetidamente `could not determine data type of parameter $2` y algunos casos sobre `$3`; el filtro nullable de busqueda de Catalogo corresponde a `$2`.
+- La causa se identifico en parametros con `DBNull.Value` sin `NpgsqlDbType`, no en una ausencia de tablas o migraciones.
+- Suite completa backend ejecutada con `dotnet test`: 45/45 pruebas aprobadas, incluida la regresion que verifica valor nulo y tipo explicito.
+- Build Release de la API aprobado con 0 warnings y 0 errores.
+- Supabase AgroControl verificado `ACTIVE_HEALTHY`, con `V0001` a `V0016` y las tablas de catalogo/stock consultadas presentes.
+- El hotfix no modifica el esquema y no requiere una nueva migracion.
+- No se realizo despliegue; la correccion aun debe validarse sobre el entorno remoto despues de publicarla.
+
+Validacion de contratos web y circuito guiado de Catalogo al 2026-07-22:
+
+- 22/22 pruebas web aprobadas, incluidas regresiones de contratos y Server Actions de Catalogo, Stock y Caja con UUID PostgreSQL sin bits de variante RFC 4122.
 - Lint web aprobado.
 - Typecheck web aprobado.
 - Build de produccion de Next.js aprobado.
-- 9/9 pruebas backend focalizadas de Catalogo y Stock aprobadas.
-- No se modificaron backend ni base de datos en esta implementacion.
-- No se informo validacion visual/E2E en navegadores o dispositivos reales.
+- El circuito implementado cubre Categoria/Marca -> Producto -> Precio y soporta calculo automatico costo+margen o precio manual.
+- No se informo validacion visual/E2E en navegador contra el entorno remoto.
 - No se realizo despliegue ni sincronizacion con Notion.
 
 Validacion operativa mas reciente:
@@ -180,13 +192,14 @@ Validacion operativa mas reciente:
 ## 6. Decisiones vigentes
 
 - Persistencia con `Npgsql` y sin Entity Framework.
+- Parametros opcionales de `Npgsql` centralizados y siempre tipados explicitamente, incluido el caso `DBNull.Value`, para evitar que PostgreSQL dependa de inferencia contextual.
 - Rutinas SQL reservadas para workflows transaccionales de negocio.
 - `StockBalance` como proyeccion operativa derivada, no como fuente editable de verdad.
 - PostgreSQL local en Docker Compose con API y frontend corriendo fuera de Docker.
 - OpenAPI diferido hasta validar una variante estable para este stack.
 - Sesion web mediada por Next.js con cookies HTTP-only y auth propietaria en la API.
-- Los identificadores provenientes de PostgreSQL en contratos web usan validacion de GUID compatible con PostgreSQL; no se exige variante RFC 4122 cuando la base no la garantiza.
-- La interfaz autenticada prioriza navegacion operativa responsive y divulgacion progresiva de formularios para reducir carga visual sin ocultar capacidades.
+- Los identificadores provenientes de PostgreSQL en contratos web y Server Actions usan validacion de GUID compatible con PostgreSQL; no se exige variante RFC 4122 cuando la base no la garantiza.
+- La interfaz autenticada prioriza navegacion operativa responsive y divulgacion progresiva; el alta de Catalogo guia Categoria/Marca, Producto y Precio, con calculo costo+margen opcional.
 - Catalogo, stock, caja y POS del baseline operan en una sola locacion.
 - Reversa inicial de ventas solo en modalidad total, mediante compensaciones.
 - Base de despliegue preparada para Supabase, Render y Vercel sin versionar secretos.
@@ -204,3 +217,5 @@ Validacion operativa mas reciente:
 - Faltan refinanciaciones, acuerdos de pago con vista historica de anticipos y acople fiscal de las devoluciones parciales.
 - Faltan transferencias entre depositos, compras/proveedores y reportes consolidados multi-deposito.
 - Definir si los previews de Vercel apuntaran a la misma API de produccion o a una API separada con politica CORS dedicada.
+- Desplegar el hotfix de parametros nullable y monitorear los logs PostgreSQL para confirmar que dejan de aparecer los errores de inferencia sobre `$2`/`$3`; el resultado remoto no esta validado todavia.
+- Validar en navegador y contra el entorno remoto el recorrido completo Categoria -> Marca -> Producto -> Precio, junto con la carga de Catalogo, Stock y Caja.

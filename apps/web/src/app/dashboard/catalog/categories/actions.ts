@@ -7,6 +7,7 @@ import {
   revalidateDashboardPaths,
   updateCatalogCategory,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type CategoryActionState = {
   error: string | null;
@@ -19,7 +20,7 @@ const createSchema = z.object({
 });
 
 const updateSchema = createSchema.extend({
-  categoryId: z.string().uuid(),
+  categoryId: postgresUuidSchema,
   isActive: z.boolean(),
 });
 

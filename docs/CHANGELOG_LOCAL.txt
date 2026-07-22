@@ -1,5 +1,64 @@
 # AgroControl - Changelog local
 
+[2026-07-22] Area: api/persistence/nullable-parameters
+Cambio:
+- Se corrigio el error recurrente de PostgreSQL `could not determine data type of parameter $2` y sus variantes sobre `$3`, originado cuando los helpers `AddNullable` enviaban `DBNull.Value` sin declarar `NpgsqlDbType`; en la busqueda de Catalogo, el filtro nullable afectado corresponde a `$2`.
+- Se centralizo la creacion de parametros opcionales en `NpgsqlParameterHelper`, que asigna tipos explicitos `Text`, `Uuid`, `Boolean`, `Numeric`, `Date`, `TimestampTz`, `Integer` y `Bigint` aun cuando el valor es nulo.
+- Los repositorios de Catalogo, Stock, Caja, Clientes, Fiscal y Ventas ahora delegan al helper comun. Se habilito el acceso de tests al helper y se agrego una regresion que verifica conjuntamente valor nulo y `NpgsqlDbType`.
+
+Archivos/modulos:
+- `apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlParameterHelper.cs`
+- `apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCatalogRepository.cs`
+- `apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlStockRepository.cs`
+- `apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCashRepository.cs`
+- `apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlCustomerRepository.cs`
+- `apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlFiscalRepository.cs`
+- `apps/api/src/AgroControl.Infrastructure/Persistence/NpgsqlSalesRepository.cs`
+- `apps/api/src/AgroControl.Infrastructure/Properties/AssemblyInfo.cs`
+- `apps/api/tests/AgroControl.Api.Tests/NpgsqlParameterHelperTests.cs`
+
+Validacion:
+- Suite completa backend: `dotnet test`, 45/45 pruebas aprobadas.
+- Build Release de la API: aprobado con 0 warnings y 0 errores.
+- Supabase AgroControl verificado en estado `ACTIVE_HEALTHY`; migraciones `V0001` a `V0016` presentes.
+- Existencia verificada de `app.products`, `app.product_categories`, `app.units_of_measure`, `app.price_lists`, `app.product_prices` y `app.warehouses`.
+- Diagnostico sustentado por logs PostgreSQL de las ultimas 24 horas con errores repetidos de inferencia de tipo para `$2` y algunos `$3`.
+- No hubo cambios de esquema ni se agrego migracion. No se realizo despliegue.
+
+Pendientes/riesgos:
+- Desplegar el hotfix antes de considerar resuelto el incidente en el entorno remoto.
+- Tras el despliegue, monitorear los logs PostgreSQL y ejecutar los flujos con filtros opcionales nulos para confirmar que no reaparecen errores de inferencia.
+
+[2026-07-22] Area: web/catalog-guided-setup-and-postgresql-guid-contracts
+Cambio:
+- Se incorporo en Catalogo una carga guiada que ordena el alta operativa en tres etapas: clasificacion mediante categoria y marca, registro del producto y definicion del precio.
+- La definicion de precio permite calcular automaticamente el importe de venta a partir de costo y margen, o desactivar el calculo y cargar un precio manual.
+- Los formularios explican prerequisitos, muestran el avance y bloquean el alta del producto cuando no existe una unidad o lista de precios activa, evitando recorridos fallidos.
+- `postgresUuidSchema` se reutiliza tambien en las Server Actions de Catalogo, Stock, Caja, Clientes, Fiscal, POS y Usuarios. De esta forma, las lecturas y mutaciones aceptan UUID validos de PostgreSQL aunque no cumplan los bits de variante RFC 4122, sin degradar la validacion a texto libre.
+- Se ampliaron las regresiones de acciones de Catalogo, Stock y Caja con identificadores PostgreSQL validos sin variante RFC.
+
+Archivos/modulos:
+- `apps/web/src/app/dashboard/catalog/page.tsx`
+- `apps/web/src/components/catalog/catalog-setup-flow.tsx`
+- `apps/web/src/components/catalog/catalog-master-form.tsx`
+- `apps/web/src/components/catalog/catalog-product-create-form.tsx`
+- `apps/web/src/lib/api/contracts.ts`
+- `apps/web/src/app/dashboard/*/actions.ts`
+- `apps/web/src/app/dashboard/catalog/actions.test.ts`
+- `apps/web/src/app/dashboard/stock/actions.test.ts`
+- `apps/web/src/app/dashboard/cash/actions.test.ts`
+
+Validacion:
+- Pruebas web: 22/22 aprobadas.
+- `npm.cmd run typecheck`: aprobado.
+- `npm.cmd run lint`: aprobado.
+- Build de produccion de Next.js: aprobado.
+- No se realizo despliegue ni sincronizacion con Notion.
+
+Pendientes/riesgos:
+- La validacion automatizada cubre contratos, acciones, compilacion y build; no se informo una prueba visual/E2E del circuito completo en navegador contra el entorno remoto.
+- Confirmar el circuito Categoria -> Marca -> Producto -> Precio despues del despliegue, junto con la carga remota de Catalogo, Stock y Caja.
+
 [2026-07-21 18:16] Area: web/contracts-and-operational-ui
 Cambio:
 - Se corrigio el contrato web para aceptar todos los UUID validos de PostgreSQL mediante `postgresUuidSchema` basado en `z.guid()`, sin exigir los bits de variante RFC 4122 que imponia `z.string().uuid()`.

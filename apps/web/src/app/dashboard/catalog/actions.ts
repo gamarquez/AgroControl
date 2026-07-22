@@ -7,6 +7,7 @@ import {
   revalidateDashboardPaths,
   updateCatalogProduct,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type CatalogActionState = {
   error: string | null;
@@ -14,9 +15,12 @@ export type CatalogActionState = {
 };
 
 const productSchema = z.object({
-  categoryId: z.string().uuid().optional().or(z.literal("")),
-  brandId: z.string().uuid().optional().or(z.literal("")),
-  baseUnitId: z.string().uuid({ message: "Selecciona una unidad base." }),
+  categoryId: postgresUuidSchema.optional().or(z.literal("")),
+  brandId: postgresUuidSchema.optional().or(z.literal("")),
+  baseUnitId: z.string().refine(
+    (value) => postgresUuidSchema.safeParse(value).success,
+    "Selecciona una unidad base.",
+  ),
   name: z.string().trim().min(3, "El nombre debe tener al menos 3 caracteres."),
   description: z.string().optional(),
   internalCode: z.string().trim().min(1, "El codigo interno es obligatorio."),
@@ -28,11 +32,11 @@ const productSchema = z.object({
   marginPercent: z.union([z.coerce.number().min(0), z.nan()]).optional(),
   saleAmount: z.coerce.number().min(0, "El precio no puede ser negativo."),
   currencyCode: z.string().trim().length(3, "La moneda debe tener 3 caracteres."),
-  priceListId: z.string().uuid().optional().or(z.literal("")),
+  priceListId: postgresUuidSchema.optional().or(z.literal("")),
 });
 
 const updateProductSchema = productSchema.extend({
-  productId: z.string().uuid(),
+  productId: postgresUuidSchema,
   isActive: z.boolean(),
 });
 

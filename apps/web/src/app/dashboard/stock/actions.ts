@@ -10,6 +10,7 @@ import {
   updateStockPolicy,
   updateStockWarehouse,
 } from "@/lib/auth/session";
+import { postgresUuidSchema } from "@/lib/api/contracts";
 
 export type StockActionState = {
   error: string | null;
@@ -19,16 +20,16 @@ export type StockActionState = {
 const optionalQuantitySchema = z.union([z.coerce.number().min(0), z.nan()]).optional();
 
 const stockPolicySchema = z.object({
-  warehouseId: z.string().uuid(),
-  productId: z.string().uuid(),
+  warehouseId: postgresUuidSchema,
+  productId: postgresUuidSchema,
   minQuantity: optionalQuantitySchema,
   maxQuantity: optionalQuantitySchema,
   reorderPoint: optionalQuantitySchema,
 });
 
 const stockMovementSchema = z.object({
-  warehouseId: z.string().uuid(),
-  productId: z.string().uuid(),
+  warehouseId: postgresUuidSchema,
+  productId: postgresUuidSchema,
   movementType: z.enum([
     "purchase_inbound",
     "sale_outbound",
@@ -46,15 +47,15 @@ const stockMovementSchema = z.object({
 });
 
 const physicalCountSchema = z.object({
-  warehouseId: z.string().uuid(),
-  productId: z.string().uuid(),
+  warehouseId: postgresUuidSchema,
+  productId: postgresUuidSchema,
   countedQuantity: z.coerce.number().min(0, "La cantidad contada no puede ser negativa."),
   reason: z.string().trim().min(3, "El motivo debe tener al menos 3 caracteres."),
   notes: z.string().optional(),
 });
 
 const warehouseSchema = z.object({
-  warehouseId: z.string().uuid().optional(),
+  warehouseId: postgresUuidSchema.optional(),
   name: z.string().trim().min(3, "El nombre del deposito debe tener al menos 3 caracteres."),
   code: z.string().trim().min(2, "El codigo del deposito debe tener al menos 2 caracteres."),
   isDefault: z.boolean(),

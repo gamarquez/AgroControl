@@ -165,11 +165,17 @@
 ## ADR-0028 - Validacion web de identificadores PostgreSQL como GUID
 
 - Estado: aprobada.
-- Decision: todos los identificadores de contratos web que provienen de PostgreSQL se validan en Zod 4 con un esquema comun basado en `z.guid()`, sin exigir la variante RFC 4122 impuesta por `z.string().uuid()`.
-- Consecuencia: autenticacion, configuracion, Catalogo, Stock, Caja, Clientes, Fiscal y POS aceptan el dominio real de valores UUID de PostgreSQL, incluidos identificadores sin bits de variante RFC 4122, sin relajar la validacion a una cadena arbitraria. Las regresiones de sesion, productos y stock protegen este contrato.
+- Decision: todos los identificadores web que provienen de PostgreSQL, tanto en contratos de respuesta como en Server Actions, se validan en Zod 4 mediante el esquema comun `postgresUuidSchema` basado en `z.guid()`, sin exigir la variante RFC 4122 impuesta por `z.string().uuid()`.
+- Consecuencia: autenticacion, configuracion, Catalogo, Stock, Caja, Clientes, Fiscal, POS y Usuarios aceptan en lecturas y mutaciones el dominio real de valores UUID de PostgreSQL, incluidos identificadores sin bits de variante RFC 4122, sin relajar la validacion a una cadena arbitraria. Las regresiones de contratos y acciones protegen este limite.
 
 ## ADR-0029 - Interfaz operativa responsive con divulgacion progresiva
 
 - Estado: aprobada.
-- Decision: la experiencia autenticada prioriza las tareas frecuentes mediante navegacion principal visible y responsive, separa las opciones administrativas bajo Gestion y presenta los formularios secundarios de Catalogo y Stock como secciones desplegables.
-- Consecuencia: el dashboard y los modulos operativos reducen carga visual, conservan acceso rapido desde escritorio y mobile, y permiten incorporar acciones adicionales sin convertir la vista principal en una sucesion permanente de formularios abiertos.
+- Decision: la experiencia autenticada prioriza las tareas frecuentes mediante navegacion principal visible y responsive, separa las opciones administrativas bajo Gestion y usa divulgacion progresiva para las operaciones secundarias. En Catalogo, el alta se organiza explicitamente como Categoria/Marca -> Producto -> Precio, con calculo automatico costo+margen y alternativa de precio manual.
+- Consecuencia: el dashboard y los modulos operativos reducen carga visual, conservan acceso rapido desde escritorio y mobile, y guian al operador por los prerequisitos del producto sin convertir la vista principal en una sucesion permanente de formularios abiertos.
+
+## ADR-0030 - Parametros Npgsql opcionales centralizados y con tipo explicito
+
+- Estado: aprobada.
+- Decision: todo parametro opcional enviado a PostgreSQL mediante `Npgsql` debe crearse a traves de `NpgsqlParameterHelper` con su `NpgsqlDbType` explicito, incluso cuando su valor sea `DBNull.Value`. El helper cubre `Text`, `Uuid`, `Boolean`, `Numeric`, `Date`, `TimestampTz`, `Integer` y `Bigint`, y los repositorios de Catalogo, Stock, Caja, Clientes, Fiscal y Ventas delegan en este contrato.
+- Consecuencia: PostgreSQL no depende del contexto SQL para inferir el tipo de filtros nulos, se evita la familia de errores `could not determine data type of parameter`, y una prueba unitaria protege simultaneamente el valor nulo y el tipo declarado. Nuevos tipos opcionales deberan incorporarse al helper y a su cobertura antes de usarse en repositorios.
