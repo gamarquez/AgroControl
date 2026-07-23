@@ -23,6 +23,7 @@ El baseline tecnico ahora alcanza `V0016` y deja una base funcional para identid
 - POS con efectivo, cuenta corriente, checkout mixto, trazabilidad de tickets, devolucion parcial, devolucion completa por items, reversa total y consumo automatico de saldo a favor, sobre deposito default.
 - Clientes y cuenta corriente con limite de credito, venta a cuenta, cobranza FIFO, estado de cuenta, vencimientos, notas de credito internas y saldo a favor.
 - Slice fiscal inicial con configuracion ARCA, cola de comprobantes y prueba tecnica `FEDummy`.
+- Guia de uso autenticada con recorridos para la puesta en marcha, operaciones diarias, roles y practicas seguras.
 - Base de despliegue inicial preparada para Supabase, Render y Vercel.
 
 Estado operativo de Supabase al 2026-07-22:
@@ -78,6 +79,8 @@ Puntos implementados:
 - Dashboard de caja con apertura, movimientos manuales y cierre.
 - Dashboard POS para ventas de mostrador con checkout mixto, devolucion parcial, devolucion completa por items y reversa total.
 - Dashboard de clientes con padron comercial, saldo, saldo a favor, limite, movimientos, venta a cuenta y cobranza.
+- Pagina `/dashboard/guide` con inicio rapido y guias paso a paso para ventas, caja, catalogo, stock, clientes, devoluciones y preparacion fiscal. Cada flujo informa requisitos, resultado esperado y acceso directo al modulo correspondiente.
+- El desplegable responsive `Gestion` incluye `Guia de uso` y marca su estado activo tanto en escritorio como en mobile.
 - Cookies HTTP-only del lado del servidor web para no exponer refresh tokens al cliente.
 - Todos los identificadores provenientes de PostgreSQL en los contratos web y Server Actions se validan mediante `postgresUuidSchema` basado en `z.guid()`, evitando rechazar UUID validos que no declaran variante RFC 4122 sin degradar la validacion a una cadena arbitraria.
 
@@ -179,6 +182,16 @@ Validacion de contratos web y circuito guiado de Catalogo al 2026-07-22:
 - No se informo validacion visual/E2E en navegador contra el entorno remoto.
 - No se realizo despliegue ni sincronizacion con Notion.
 
+Validacion de la guia de uso al 2026-07-23:
+
+- Typecheck web aprobado.
+- Lint web aprobado.
+- 22/22 pruebas de contratos web aprobadas.
+- 5/5 pruebas de componentes aprobadas, incluida la cobertura del contenido principal de `/dashboard/guide` y su acceso desde `Gestion`.
+- Build de produccion de Next.js aprobado.
+- No se informo validacion visual o E2E en navegador.
+- No se realizo despliegue ni sincronizacion con Notion.
+
 Validacion operativa mas reciente:
 
 - Reejecucion via MCP de `V0001` a `V0016` durante el 2026-07-20/21.
@@ -229,3 +242,5 @@ Validacion operativa mas reciente:
 - Desplegar el hotfix de parametros nullable y monitorear los logs PostgreSQL para confirmar que dejan de aparecer los errores de inferencia sobre `$2`/`$3`; el resultado remoto no esta validado todavia.
 - Validar en navegador y contra el entorno remoto el recorrido completo Categoria -> Marca -> Producto -> Precio, junto con la carga de Catalogo, Stock y Caja.
 - Validar la pantalla de login y sus estados de conexion en el entorno desplegado.
+- Validar visualmente `/dashboard/guide` y el acceso `Guia de uso` del desplegable `Gestion` en los breakpoints de escritorio y mobile.
+- Mantener la guia sincronizada con los cambios funcionales y actualizar de forma prioritaria su advertencia fiscal cuando exista autorizacion real de CAE.

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpenText,
   Boxes,
   ChevronDown,
   CircleDollarSign,
@@ -28,6 +29,7 @@ const primaryLinks = [
 ];
 
 const managementLinks = [
+  { href: "/dashboard/guide", label: "Guía de uso", icon: BookOpenText },
   { href: "/dashboard/catalog/categories", label: "Categorías", icon: Tags },
   { href: "/dashboard/catalog/brands", label: "Marcas", icon: Tags },
   { href: "/dashboard/catalog/price-lists", label: "Listas de precios", icon: CircleDollarSign },

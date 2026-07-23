@@ -764,3 +764,32 @@ Validacion:
 Pendientes/riesgos:
 - La primera configuracion en Vercel sigue requiriendo cargar manualmente las variables en los scopes `Preview` y `Production`.
 - Si la API de preview usa un dominio distinto, Render o el host elegido debe aceptar los origins preview necesarios por CORS.
+
+[2026-07-23] Area: web/documentacion-operativa
+Cambio:
+- Se incorporo la pagina autenticada `/dashboard/guide` como guia de uso de AgroControl.
+- La guia documenta la primera puesta en marcha y los flujos principales de venta, caja, catalogo, stock, clientes, devoluciones y preparacion fiscal, con requisitos, pasos, resultados y enlaces directos a cada modulo.
+- Se incluyeron referencias sobre roles, permisos y reglas de operacion segura, y se explicito que el alcance fiscal actual todavia no autoriza CAE.
+- Se agrego el acceso `Guia de uso` al desplegable `Gestion` de la navegacion responsive, con estado activo en la ruta de la guia.
+- Se agregaron pruebas de componente para el contenido principal de la guia y su acceso desde la navegacion.
+
+Archivos/modulos:
+- apps/web/src/app/dashboard/guide/page.tsx
+- apps/web/app/dashboard/guide/page.tsx
+- apps/web/src/app/dashboard/guide/page.test.tsx
+- apps/web/src/components/dashboard/dashboard-nav.tsx
+- apps/web/src/components/dashboard/dashboard-nav.test.tsx
+- apps/web/vitest.config.ts
+- apps/web/package.json
+
+Validacion:
+- Typecheck web aprobado.
+- Lint web aprobado.
+- Pruebas de contratos web: 22/22 aprobadas.
+- Pruebas de componentes: 5/5 aprobadas.
+- Build de produccion de Next.js aprobado.
+- No se realizo despliegue ni sincronizacion con Notion.
+
+Pendientes/riesgos:
+- No se informo validacion visual o E2E en navegador de la guia ni de la navegacion responsive.
+- El contenido debe mantenerse alineado con los modulos y alcances operativos a medida que evolucionen, especialmente el circuito fiscal.
