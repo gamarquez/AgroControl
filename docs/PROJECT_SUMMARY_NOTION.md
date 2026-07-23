@@ -68,7 +68,8 @@ Puntos implementados:
 - TypeScript estricto.
 - Tailwind CSS.
 - Componentes base estilo shadcn/ui.
-- Login en espanol con estados claros.
+- Login en espanol simplificado a una unica tarjeta centrada. Incluye dentro de la tarjeta un indicador compacto de conexion con la API, con estados accesibles y reintento, sin exponer endpoint, URL, codigos HTTP ni detalles internos.
+- Vitest carga `vitest.setup.ts` mediante `setupFiles` para habilitar los matchers de `jest-dom` en las pruebas de componentes.
 - Layout autenticado con resolucion de sesion desde la API y navegacion responsive: barra lateral en escritorio, accesos operativos horizontales y gestion desplegable en mobile.
 - Resumen operativo con accesos directos a venta, Catalogo, Stock, Caja y Clientes.
 - Pantallas de usuarios y configuracion del comercio.
@@ -150,6 +151,14 @@ Tablas y aggregates principales del baseline:
 
 ## 5. Validaciones esperadas
 
+Validacion de la interfaz de login al 2026-07-22:
+
+- Pruebas del componente de estado de conexion: 3/3 aprobadas.
+- Lint web aprobado.
+- Typecheck web aprobado.
+- Build web aprobado.
+- No se realizo despliegue ni sincronizacion con Notion.
+
 Validacion del hotfix de parametros nullable al 2026-07-22:
 
 - Los logs PostgreSQL de las ultimas 24 horas mostraron repetidamente `could not determine data type of parameter $2` y algunos casos sobre `$3`; el filtro nullable de busqueda de Catalogo corresponde a `$2`.
@@ -219,3 +228,4 @@ Validacion operativa mas reciente:
 - Definir si los previews de Vercel apuntaran a la misma API de produccion o a una API separada con politica CORS dedicada.
 - Desplegar el hotfix de parametros nullable y monitorear los logs PostgreSQL para confirmar que dejan de aparecer los errores de inferencia sobre `$2`/`$3`; el resultado remoto no esta validado todavia.
 - Validar en navegador y contra el entorno remoto el recorrido completo Categoria -> Marca -> Producto -> Precio, junto con la carga de Catalogo, Stock y Caja.
+- Validar la pantalla de login y sus estados de conexion en el entorno desplegado.

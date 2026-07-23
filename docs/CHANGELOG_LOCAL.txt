@@ -1,5 +1,29 @@
 # AgroControl - Changelog local
 
+[2026-07-22] Area: web/login-ui
+Cambio:
+- Se simplifico la pantalla de login a una unica tarjeta centrada, con el formulario de acceso y un indicador compacto de conexion con la API dentro de la misma tarjeta.
+- El indicador comunica estados de verificacion, conexion, falta de disponibilidad y ausencia de red mediante mensajes accesibles, y ofrece reintento cuando corresponde.
+- La interfaz ya no expone el endpoint, la URL, codigos HTTP ni detalles internos de la API.
+- Se conecto `vitest.setup.ts` mediante `setupFiles` en `vitest.config.ts` para habilitar los matchers de `jest-dom` en las pruebas de componentes.
+
+Archivos/modulos:
+- `apps/web/src/app/login/page.tsx`
+- `apps/web/src/components/health/health-status-panel.tsx`
+- `apps/web/src/components/health/health-status-panel.test.tsx`
+- `apps/web/vitest.config.ts`
+- `apps/web/vitest.setup.ts`
+
+Validacion:
+- Pruebas del componente de estado de conexion: 3/3 aprobadas.
+- Lint web: aprobado.
+- Typecheck web: aprobado.
+- Build web: aprobado.
+- No se realizo despliegue ni sincronizacion con Notion.
+
+Pendientes/riesgos:
+- El cambio permanece pendiente de validacion en el entorno desplegado.
+
 [2026-07-22] Area: api/persistence/nullable-parameters
 Cambio:
 - Se corrigio el error recurrente de PostgreSQL `could not determine data type of parameter $2` y sus variantes sobre `$3`, originado cuando los helpers `AddNullable` enviaban `DBNull.Value` sin declarar `NpgsqlDbType`; en la busqueda de Catalogo, el filtro nullable afectado corresponde a `$2`.

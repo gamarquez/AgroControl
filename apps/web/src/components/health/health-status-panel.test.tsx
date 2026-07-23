@@ -42,9 +42,10 @@ describe("HealthStatusPanel", () => {
 
     renderWithProviders(<HealthStatusPanel />);
 
-    expect(await screen.findByText("Disponible")).toBeInTheDocument();
-    expect(screen.getByText("AgroControl API")).toBeInTheDocument();
-    expect(screen.getByText("database")).toBeInTheDocument();
+    expect(await screen.findByText("API conectada")).toBeInTheDocument();
+    expect(screen.queryByText("AgroControl API")).not.toBeInTheDocument();
+    expect(screen.queryByText("database")).not.toBeInTheDocument();
+    expect(screen.queryByText(/localhost:5030/)).not.toBeInTheDocument();
   });
 
   it("shows the error state when the API fails", async () => {
@@ -56,10 +57,9 @@ describe("HealthStatusPanel", () => {
 
     renderWithProviders(<HealthStatusPanel />);
 
-    expect(
-      await screen.findByRole("heading", { name: "No pudimos consultar la API" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/503/)).toBeInTheDocument();
+    expect(await screen.findByText("API no disponible")).toBeInTheDocument();
+    expect(screen.queryByText(/503/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/localhost:5030/)).not.toBeInTheDocument();
   });
 
   it("shows the offline state without hitting the network", async () => {
@@ -67,8 +67,7 @@ describe("HealthStatusPanel", () => {
 
     renderWithProviders(<HealthStatusPanel />);
 
-    expect(await screen.findByRole("heading", { name: "Sin conexion" })).toBeInTheDocument();
+    expect(await screen.findByText("Sin conexión")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
-
